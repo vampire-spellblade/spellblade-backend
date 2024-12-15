@@ -178,8 +178,8 @@ class TestSignup(APITestCase):
 
     def test_signup_invalid_signup_data(self):
         data = {
-            'email': 'invalid@example.com',
-            'password': 'short',
+            'email': 'jdoe@example.com',
+            'password': 'jdoe',
         }
 
         response = self.client.post(self.url, data, format='json')
