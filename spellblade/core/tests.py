@@ -23,7 +23,7 @@ class TestLogin(APITestCase):
 
         self.url = reverse('login')
 
-    def test_login_success(self):
+    def test_success(self):
         data = {
             'email': 'jdoe@example.com',
             'password': 'y79rNX#+l45M',
@@ -32,14 +32,12 @@ class TestLogin(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['message'], 'Login successful')
-        self.assertIn('detail', response.data)
-        self.assertEqual(response.data['detail']['email'], self.user.email)
-        self.assertEqual(response.data['detail']['first_name'], self.user.first_name)
-        self.assertEqual(response.data['detail']['last_name'], self.user.last_name)
-        self.assertTrue('token' in response.data['detail'])
+        self.assertEqual(response.data['email'], self.user.email)
+        self.assertEqual(response.data['first_name'], self.user.first_name)
+        self.assertEqual(response.data['last_name'], self.user.last_name)
+        self.assertTrue('token' in response.data)
 
-    def test_login_missing_email(self):
+    def test_missing_email(self):
         data = {
             'password': 'y79rNX#+l45M',
         }
@@ -47,9 +45,8 @@ class TestLogin(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data['error'], 'Invalid credentials')
 
-    def test_login_missing_password(self):
+    def test_missing_password(self):
         data = {
             'email': 'jdoe@example.com',
         }
@@ -57,9 +54,8 @@ class TestLogin(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data['error'], 'Invalid credentials')
 
-    def test_login_invalid_email_format(self):
+    def test_invalid_email_format(self):
         data = {
             'email': 'jdoe',
             'password': 'y79rNX#+l45M',
@@ -68,9 +64,8 @@ class TestLogin(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data['error'], 'Invalid credentials')
 
-    def test_login_wrong_email(self):
+    def test_wrong_email(self):
         data = {
             'email': 'jdoe7@example.com',
             'password': 'y79rNX#+l45M',
@@ -79,9 +74,8 @@ class TestLogin(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data['error'], 'Invalid credentials')
 
-    def test_login_wrong_password(self):
+    def test_wrong_password(self):
         data = {
             'email': 'jdoe@example.com',
             'password': 'y79rNX#+l45m',
@@ -90,4 +84,3 @@ class TestLogin(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data['error'], 'Invalid credentials')

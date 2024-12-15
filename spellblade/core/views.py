@@ -17,16 +17,13 @@ def login(request):
         token, created = Token.objects.get_or_create(user=user)
 
         return Response({
-            'message': 'Login successful',
-            'detail': {
-                'email': user.email,
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-                'token': token.key,
-            }
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'token': token.key,
         }, status=status.HTTP_200_OK)
     else:
-        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['POST'])
 def logout(request):
