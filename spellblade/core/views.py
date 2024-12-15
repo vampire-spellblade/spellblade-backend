@@ -53,7 +53,10 @@ def signup(request):
     serializer = serializers.UserSerializer(data=request.data)
 
     if serializer.is_valid():
-        user = serializer.save()
+        try:
+            user = serializer.save()
+        except ValueError as e:
+            return Response({ 'error': _(f'{e}') }, status=status.HTTP_400_BAD_REQUEST)
 
         token, created = Token.objects.get_or_create(user=user)
 
