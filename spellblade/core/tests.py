@@ -45,7 +45,7 @@ class TestLogin(APITestCase):
 
         response = self.client.post(self.url, data, format='json')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(response.data['error'], _('Invalid email or password'))
 
     def test_login_missing_password(self):
@@ -55,7 +55,7 @@ class TestLogin(APITestCase):
 
         response = self.client.post(self.url, data, format='json')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(response.data['error'], _('Invalid email or password'))
 
     def test_login_invalid_email_format(self):
@@ -66,7 +66,7 @@ class TestLogin(APITestCase):
 
         response = self.client.post(self.url, data, format='json')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(response.data['error'], _('Invalid email or password'))
 
     def test_login_wrong_email(self):
@@ -77,7 +77,7 @@ class TestLogin(APITestCase):
 
         response = self.client.post(self.url, data, format='json')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(response.data['error'], _('Invalid email or password'))
 
     def test_login_wrong_password(self):
@@ -88,7 +88,7 @@ class TestLogin(APITestCase):
 
         response = self.client.post(self.url, data, format='json')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(response.data['error'], _('Invalid email or password'))
 
 class TestLogout(APITestCase):
@@ -173,7 +173,7 @@ class TestSignup(APITestCase):
 
         response = self.client.post(self.url, data, format='json')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
         self.assertEqual(response.data['error'], _('Account already exists'))
 
     def test_signup_invalid_signup_data(self):
@@ -184,5 +184,5 @@ class TestSignup(APITestCase):
 
         response = self.client.post(self.url, data, format='json')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['error'], _('Invalid data'))

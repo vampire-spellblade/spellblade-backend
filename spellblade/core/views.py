@@ -29,7 +29,7 @@ def login(request):
             },
         }, status=status.HTTP_200_OK)
     else:
-        return Response({ 'error': _('Invalid email or password') }, status=status.HTTP_200_OK)
+        return Response({ 'error': _('Invalid email or password') }, status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
@@ -48,7 +48,7 @@ def signup(request):
     email = request.data.get('email')
 
     if models.User.objects.filter(email=email).exists():
-        return Response({ 'error': _('Account already exists') }, status=status.HTTP_200_OK)
+        return Response({ 'error': _('Account already exists') }, status=status.HTTP_409_CONFLICT)
 
     serializer = serializers.UserSerializer(data=request.data)
 
@@ -67,4 +67,4 @@ def signup(request):
             },
         }, status=status.HTTP_200_OK)
     else:
-        return Response({ 'error': _('Invalid data') }, status=status.HTTP_200_OK)
+        return Response({ 'error': _('Invalid data') }, status=status.HTTP_400_BAD_REQUEST)
