@@ -1,4 +1,6 @@
-from rest_framework.decorators import api_view
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -26,8 +28,19 @@ def login(request):
         return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def logout(request):
-    pass
+    if request.user.is_authenticated:
+        try:
+            token = Token.objects.get(user=request.user)
+            token.delete()
+
+            return Response(status=status.HTTP_200_OK)
+        except Token.DoesNotExist:
+            pass
+    else:
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['POST'])
 def signup(request):

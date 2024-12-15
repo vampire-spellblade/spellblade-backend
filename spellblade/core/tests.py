@@ -1,6 +1,7 @@
 from rest_framework.test import APITestCase
 from rest_framework.reverse import reverse
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 from . import models
 from . import serializers
 
@@ -82,5 +83,51 @@ class TestLogin(APITestCase):
         }
 
         response = self.client.post(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class TestLogout(APITestCase):
+
+    def setUp(self):
+        data = {
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'email': 'jdoe@example.com',
+            'password': 'y79rNX#+l45M',
+        }
+
+        serializer = serializers.UserSerializer(data=data)
+
+        if serializer.is_valid():
+            self.user = serializer.save()
+        else:
+            print(serializer.errors)
+
+        self.url = reverse('logout')
+
+        response = self.client.post(reverse('login'), {
+            'email': data['email'],
+            'password': data['password'],
+        }, format='json')
+
+        self.token = response.data['token']
+
+    def test_success(self):
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token)
+
+        response = self.client.post(self.url, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(Token.objects.filter(user=self.user).exists())
+
+    def test_unauthenticated(self):
+        response = self.client.post(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_invalid_token(self):
+        self.client.credentials(HTTP_AUTHORIZATION='Token invalidtoken123')
+
+        response = self.client.post(self.url)
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
