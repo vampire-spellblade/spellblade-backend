@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from rest_framework.authtoken.models import TokenProxy
 from . import models
 from . import forms
 
@@ -34,3 +35,5 @@ class Users(UserAdmin):
             'fields': ('groups', 'user_permissions', 'is_active', 'is_staff',)
         }),
     )
+
+admin.site.unregister(TokenProxy)
