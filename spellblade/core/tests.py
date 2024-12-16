@@ -756,4 +756,86 @@ class TestSignUp(APITestCase):
 class TestLoginRenew(APITestCase):
 
     def setUp(self):
+        data = {
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'email': 'jdoe@example.com',
+            'password': 'ABC123!xyz',
+        }
+
+        serializer = serializers.UserSerializer(data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+
+        user = self.client.post(reverse('login'), {
+            'email': 'jdoe@example.com',
+            'password': 'ABC123!xyz',
+        })
+
+        self.access_token = user.data['user']['access_token']
+        self.refresh_token = user.data['user']['refresh_token']
+
         self.url = reverse('login_renew')
+
+    def test_login_renew_not_logged_in(self):
+        response = self.client.post(self.url, {
+            'refresh_token': self.refresh_token,
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_login_renew_no_refresh_token(self):
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
+
+        response = self.client.post(self.url, {}, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'][0], _('Refresh token required'))
+
+    def test_login_renew_invalid_refresh_token(self):
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
+
+        response = self.client.post(self.url, {
+            'refresh_token': 'invalid_refresh_token',
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'][0], _('Invalid refresh token'))
+
+    def test_login_renew_different_user_token(self):
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
+
+        serializer = serializers.UserSerializer(data={
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'email': 'jane_doe@example.com',
+            'password': 'ABC123!xyz',
+        })
+
+        if serializer.is_valid():
+            serializer.save()
+
+        user = self.client.post(reverse('login'), {
+            'email': 'jane_doe@example.com',
+            'password': 'ABC123!xyz',
+        }, format='json')
+
+        refresh_token = user.data['user']['refresh_token']
+
+        response = self.client.post(self.url, {
+            'refresh_token': refresh_token,
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'][0], _('Invalid refresh token'))
+
+    def test_login_renew_success(self):
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
+
+        response = self.client.post(self.url, {
+            'refresh_token': self.refresh_token,
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue('access_token' in response.data['user'])

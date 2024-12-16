@@ -167,9 +167,12 @@ def login_renew(request):
     if not refresh_token:
         return Response({ 'error': [_('Refresh token required')] }, status=status.HTTP_400_BAD_REQUEST)
 
-    refresh_token = RefreshToken(refresh_token)
+    try:
+        refresh_token = RefreshToken(refresh_token)
+    except TokenError:
+        return Response({ 'error': [_('Invalid refresh token')] }, status=status.HTTP_400_BAD_REQUEST)
 
-    if refresh_token.for_user != request.user:
+    if refresh_token['user_id'] != request.user.id:
         return Response({ 'error': [_('Invalid refresh token')] }, status=status.HTTP_400_BAD_REQUEST)
 
     access_token = str(refresh_token.access_token)
