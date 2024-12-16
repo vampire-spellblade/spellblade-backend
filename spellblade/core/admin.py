@@ -1,10 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from rest_framework.authtoken.models import TokenProxy
 from . import models
 from . import forms
-
-admin.site.unregister(TokenProxy)
 
 @admin.register(models.User)
 class Users(UserAdmin):

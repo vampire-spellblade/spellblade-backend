@@ -5,10 +5,10 @@ class UserCreationForm(UserCreationForm):
 
     class Meta:
         model = models.User
-        fields = ("email",)
+        fields = ('email',)
 
 class UserChangeForm(UserChangeForm):
 
     class Meta:
         model = models.User
-        fields = ("email",)
+        fields = ('email',)
