@@ -139,7 +139,12 @@ def sign_up(request):
     if len(errors) > 0:
         return Response({ 'error': errors }, status=status.HTTP_400_BAD_REQUEST)
 
-    serializer = serializers.UserSerializer(data=request.data)
+    serializer = serializers.UserSerializer(data={
+        'first_name': first_name,
+        'last_name': last_name,
+        'email': email,
+        'password': password,
+    })
 
     if serializer.is_valid():
         user = serializer.save()

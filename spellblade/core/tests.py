@@ -753,6 +753,84 @@ class TestSignUp(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['error'][0], _('Account already exists'))
 
+    def test_signup_is_active_false_no_effect(self):
+        data = {
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'email': 'jdoe@example.com',
+            'password': 'ABC123!xyz',
+            'is_active': False,
+        }
+
+        response = self.client.post(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], _('Signup successful'))
+        self.assertEqual(response.data['user']['first_name'], 'John')
+        self.assertEqual(response.data['user']['last_name'], 'Doe')
+        self.assertEqual(response.data['user']['email'], 'jdoe@example.com')
+        self.assertTrue('access_token' in response.data['user'])
+        self.assertTrue('refresh_token' in response.data['user'])
+
+        user = models.User.objects.get(email='jdoe@example.com')
+
+        self.assertEqual(user.first_name, 'John')
+        self.assertEqual(user.last_name, 'Doe')
+        self.assertTrue(user.check_password('ABC123!xyz'))
+        self.assertTrue(user.is_active)
+
+    def test_signup_is_superuser_true_no_effect(self):
+        data = {
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'email': 'jdoe@example.com',
+            'password': 'ABC123!xyz',
+            'is_superuser': True,
+        }
+
+        response = self.client.post(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], _('Signup successful'))
+        self.assertEqual(response.data['user']['first_name'], 'John')
+        self.assertEqual(response.data['user']['last_name'], 'Doe')
+        self.assertEqual(response.data['user']['email'], 'jdoe@example.com')
+        self.assertTrue('access_token' in response.data['user'])
+        self.assertTrue('refresh_token' in response.data['user'])
+
+        user = models.User.objects.get(email='jdoe@example.com')
+
+        self.assertEqual(user.first_name, 'John')
+        self.assertEqual(user.last_name, 'Doe')
+        self.assertTrue(user.check_password('ABC123!xyz'))
+        self.assertFalse(user.is_superuser)
+
+    def test_signup_is_staff_true_no_effect(self):
+        data = {
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'email': 'jdoe@example.com',
+            'password': 'ABC123!xyz',
+            'is_staff': True,
+        }
+
+        response = self.client.post(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], _('Signup successful'))
+        self.assertEqual(response.data['user']['first_name'], 'John')
+        self.assertEqual(response.data['user']['last_name'], 'Doe')
+        self.assertEqual(response.data['user']['email'], 'jdoe@example.com')
+        self.assertTrue('access_token' in response.data['user'])
+        self.assertTrue('refresh_token' in response.data['user'])
+
+        user = models.User.objects.get(email='jdoe@example.com')
+
+        self.assertEqual(user.first_name, 'John')
+        self.assertEqual(user.last_name, 'Doe')
+        self.assertTrue(user.check_password('ABC123!xyz'))
+        self.assertFalse(user.is_staff)
+
 class TestLoginRenew(APITestCase):
 
     def setUp(self):
