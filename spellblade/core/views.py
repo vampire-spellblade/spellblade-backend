@@ -17,7 +17,7 @@ def login(request):
     user = authenticate(email=email, password=password)
 
     if user is not None:
-        token, created = Token.objects.get_or_create(user=user)
+        token = Token.objects.create(user=user)
 
         return Response({
             'message': _('Login successful'),
@@ -35,20 +35,29 @@ def login(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def logout(request):
-    try:
-        token = Token.objects.get(user=request.user)
-        token.delete()
+    token = request.auth
+    token.delete()
 
-        return Response({ 'message': _('Logout successful') }, status=status.HTTP_200_OK)
-    except Token.DoesNotExist:
-        pass
+    return Response({ 'message': _('Logout successful') }, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 def signup(request):
+    first_name = request.data.get('first_name')
+    last_name = request.data.get('last_name')
     email = request.data.get('email')
+    password = request.data.get('password')
+
+    if not first_name or len(first_name) == 0:
+        return Response({ 'error': _('The first name is required.') }, status=status.HTTP_400_BAD_REQUEST)
+
+    if not last_name or len(last_name) == 0:
+        return Response({ 'error': _('The last name is required.') }, status=status.HTTP_400_BAD_REQUEST)
+
+    if not password or len(password) == 0:
+        return Response({ 'error': _('The password is required.') }, status=status.HTTP_400_BAD_REQUEST)
 
     if models.User.objects.filter(email=email).exists():
-        return Response({ 'error': _('Account already exists') }, status=status.HTTP_409_CONFLICT)
+        return Response({ 'error': _('The account already exists.') }, status=status.HTTP_409_CONFLICT)
 
     serializer = serializers.UserSerializer(data=request.data)
 
@@ -58,7 +67,7 @@ def signup(request):
         except ValueError as e:
             return Response({ 'error': _(f'{e}') }, status=status.HTTP_400_BAD_REQUEST)
 
-        token, created = Token.objects.get_or_create(user=user)
+        token = Token.objects.get_or_create(user=user)
 
         return Response({
             'message': _('Signup successful'),
@@ -70,4 +79,4 @@ def signup(request):
             },
         }, status=status.HTTP_200_OK)
     else:
-        return Response({ 'error': _('Invalid data') }, status=status.HTTP_400_BAD_REQUEST)
+        return Response({ 'error': _('The email is not valid.') }, status=status.HTTP_400_BAD_REQUEST)

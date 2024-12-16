@@ -4,6 +4,8 @@ from rest_framework.authtoken.models import TokenProxy
 from . import models
 from . import forms
 
+admin.site.unregister(TokenProxy)
+
 @admin.register(models.User)
 class Users(UserAdmin):
     ordering = ('email',)
@@ -35,5 +37,3 @@ class Users(UserAdmin):
             'fields': ('groups', 'user_permissions', 'is_active', 'is_staff',)
         }),
     )
-
-admin.site.unregister(TokenProxy)

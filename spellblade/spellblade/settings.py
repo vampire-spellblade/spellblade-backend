@@ -81,6 +81,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
+    {
+        'NAME': 'core.validators.PasswordComplexityValidator',
+    }
 ]
 
 # Internationalization
