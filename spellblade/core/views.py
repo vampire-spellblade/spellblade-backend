@@ -81,26 +81,52 @@ def logout(request):
 def sign_up(request):
     errors = []
 
-    first_name = request.data.get('first_name').strip()
-    last_name = request.data.get('last_name').strip()
-    email = request.data.get('email').strip().lower()
+    first_name = request.data.get('first_name')
+    last_name = request.data.get('last_name')
+    email = request.data.get('email')
     password = request.data.get('password')
 
     if not first_name:
         errors.append(_('First name required'))
-    elif len(first_name) < 2 or len(first_name) > 64:
-        errors.append(_('First name must be between 2 and 64 characters'))
+    elif not isinstance(first_name, str):
+        errors.append(_('First name must be a string'))
+    else:
+        first_name = first_name.strip()
+
+        if len(first_name) < 2 or len(first_name) > 64:
+            errors.append(_('First name must be between 2 and 64 characters'))
 
     if not last_name:
         errors.append(_('Last name required'))
-    elif len(last_name) < 2 or len(last_name) > 64:
-        errors.append(_('Last name must be between 2 and 64 characters'))
+    elif not isinstance(last_name, str):
+        errors.append(_('Last name must be a string'))
+    else:
+        last_name = last_name.strip()
 
-    if not EmailValidator().validate(email):
-        errors.append(_('Email is invalid'))
+        if len(last_name) < 2 or len(last_name) > 64:
+            errors.append(_('Last name must be between 2 and 64 characters'))
+
+    if not email:
+        errors.append(_('Email required'))
+    elif not isinstance(email, str):
+        errors.append(_('Email must be a string'))
+    else:
+        email = email.strip().lower()
+
+        validate_email = EmailValidator()
+
+        if len(email) < 3 or len(email) > 192:
+            errors.append(_('Email must be between 3 and 192 characters'))
+        else:
+            try:
+                validate_email(email)
+            except ValidationError:
+                errors.append(_('Email is invalid'))
 
     if not password:
         errors.append(_('Password required'))
+    elif not isinstance(password, str):
+        errors.append(_('Password must be a string'))
     else:
         try:
             validate_password(password)
