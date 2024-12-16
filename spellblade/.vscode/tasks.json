@@ -2,9 +2,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Run Server",
+            "label": "Run",
             "type": "shell",
-            "command": "python spellblade/manage.py runserver"
+            "command": "python manage.py runserver"
         }
     ]
 }
