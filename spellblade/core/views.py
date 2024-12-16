@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.core.validators import EmailValidator
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from rest_framework_simplejwt.exceptions import TokenError
 from django.utils.translation import gettext_lazy as _
 from . import models
 from . import serializers
@@ -62,9 +63,12 @@ def logout(request):
     if not refresh_token:
         return Response({ 'error': [_('Refresh token required')] }, status=status.HTTP_400_BAD_REQUEST)
 
-    refresh_token = RefreshToken(refresh_token)
+    try:
+        refresh_token = RefreshToken(refresh_token)
+    except TokenError:
+        return Response({ 'error': [_('Invalid refresh token')] }, status=status.HTTP_400_BAD_REQUEST)
 
-    if refresh_token.for_user != request.user:
+    if refresh_token['user_id'] != request.user.id:
         return Response({ 'error': [_('Invalid refresh token')] }, status=status.HTTP_400_BAD_REQUEST)
 
     refresh_token.blacklist()
