@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+
 from . import models
 from . import forms
 

@@ -1,9 +1,12 @@
 from rest_framework.test import APITestCase
 from rest_framework.reverse import reverse
 from rest_framework import status
-from django.utils.translation import gettext_lazy as _
+
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+
 from . import models
 from . import serializers
+from . import errors as core_errors
 
 class TestLogin(APITestCase):
 
@@ -18,7 +21,7 @@ class TestLogin(APITestCase):
         serializer = serializers.UserSerializer(data=data)
 
         if serializer.is_valid():
-            serializer.save()
+            self.user = serializer.save()
 
         self.url = reverse('login')
 
@@ -31,12 +34,17 @@ class TestLogin(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['message'], _('Login successful'))
-        self.assertEqual(response.data['user']['first_name'], 'John')
-        self.assertEqual(response.data['user']['last_name'], 'Doe')
-        self.assertEqual(response.data['user']['email'], 'jdoe@example.com')
-        self.assertTrue('access_token' in response.data['user'])
-        self.assertTrue('refresh_token' in response.data['user'])
+        self.assertEqual(response.data['first_name'], 'John')
+        self.assertEqual(response.data['last_name'], 'Doe')
+        self.assertEqual(response.data['email'], 'jdoe@example.com')
+        self.assertTrue('access_token' in response.data)
+        self.assertTrue('refresh_token' in response.data)
+
+        access_token = AccessToken(response.data['access_token'])
+        refresh_token = RefreshToken(response.data['refresh_token'])
+
+        self.assertEqual(access_token['user_id'], self.user.id)
+        self.assertEqual(refresh_token['user_id'], self.user.id)
 
     def test_login_missing_email(self):
         data = {
@@ -46,7 +54,7 @@ class TestLogin(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Email required'))
+        self.assertEqual(response.data['errors'][0], core_errors.EMAIL_REQUIRED)
 
     def test_login_empty_email(self):
         data = {
@@ -57,7 +65,7 @@ class TestLogin(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Email required'))
+        self.assertEqual(response.data['errors'][0], core_errors.EMAIL_REQUIRED)
 
     def test_login_missing_password(self):
         data = {
@@ -67,7 +75,7 @@ class TestLogin(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Password required'))
+        self.assertEqual(response.data['errors'][0], core_errors.PASSWORD_REQUIRED)
 
     def test_login_empty_password(self):
         data = {
@@ -78,7 +86,7 @@ class TestLogin(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Password required'))
+        self.assertEqual(response.data['errors'][0], core_errors.PASSWORD_REQUIRED)
 
     def test_login_missing_email_and_password(self):
         data = {}
@@ -86,8 +94,8 @@ class TestLogin(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Email required'))
-        self.assertEqual(response.data['error'][1], _('Password required'))
+        self.assertEqual(response.data['errors'][0], core_errors.EMAIL_REQUIRED)
+        self.assertEqual(response.data['errors'][1], core_errors.PASSWORD_REQUIRED)
 
     def test_login_empty_email_and_password(self):
         data = {
@@ -98,8 +106,8 @@ class TestLogin(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Email required'))
-        self.assertEqual(response.data['error'][1], _('Password required'))
+        self.assertEqual(response.data['errors'][0], core_errors.EMAIL_REQUIRED)
+        self.assertEqual(response.data['errors'][1], core_errors.PASSWORD_REQUIRED)
 
     def test_login_missing_email_and_empty_password(self):
         data = {
@@ -109,8 +117,8 @@ class TestLogin(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Email required'))
-        self.assertEqual(response.data['error'][1], _('Password required'))
+        self.assertEqual(response.data['errors'][0], core_errors.EMAIL_REQUIRED)
+        self.assertEqual(response.data['errors'][1], core_errors.PASSWORD_REQUIRED)
 
     def test_login_empty_email_and_missing_password(self):
         data = {
@@ -120,19 +128,19 @@ class TestLogin(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Email required'))
-        self.assertEqual(response.data['error'][1], _('Password required'))
+        self.assertEqual(response.data['errors'][0], core_errors.EMAIL_REQUIRED)
+        self.assertEqual(response.data['errors'][1], core_errors.PASSWORD_REQUIRED)
 
     def test_login_incorrect_email(self):
         data = {
-            'email': 'incorrect_email',
+            'email': 'incorrect_email@example.com',
             'password': 'ABC123!xyz',
         }
 
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Incorrect email or password'))
+        self.assertEqual(response.data['errors'][0], core_errors.INVALID_CREDENTIALS)
 
     def test_login_incorrect_password(self):
         data = {
@@ -143,18 +151,18 @@ class TestLogin(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Incorrect email or password'))
+        self.assertEqual(response.data['errors'][0], core_errors.INVALID_CREDENTIALS)
 
     def test_login_incorrect_email_and_password(self):
         data = {
-            'email': 'invalid_email',
+            'email': 'incorrect_email@example.com',
             'password': 'incorrect_password',
         }
 
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Incorrect email or password'))
+        self.assertEqual(response.data['errors'][0], core_errors.INVALID_CREDENTIALS)
 
     def test_login_invalid_email_type(self):
         data = {
@@ -165,7 +173,7 @@ class TestLogin(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Email must be a string'))
+        self.assertEqual(response.data['errors'][0], core_errors.EMAIL_TYPE_MISMATCH)
 
     def test_login_invalid_password_type(self):
         data = {
@@ -176,7 +184,7 @@ class TestLogin(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Password must be a string'))
+        self.assertEqual(response.data['errors'][0], core_errors.PASSWORD_TYPE_MISMATCH)
 
     def test_login_invalid_email_and_password_type(self):
         data = {
@@ -187,26 +195,31 @@ class TestLogin(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Email must be a string'))
-        self.assertEqual(response.data['error'][1], _('Password must be a string'))
+        self.assertEqual(response.data['errors'][0], core_errors.EMAIL_TYPE_MISMATCH)
+        self.assertEqual(response.data['errors'][1], core_errors.PASSWORD_TYPE_MISMATCH)
 
-    def test_login_email_with_uppercase_characters(self):
+    def test_login_success_email_with_different_case(self):
         data = {
-            'email': 'JDOE@example.com',
+            'email': 'jDoE@eXamPlE.Com',
             'password': 'ABC123!xyz',
         }
 
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['message'], _('Login successful'))
-        self.assertEqual(response.data['user']['first_name'], 'John')
-        self.assertEqual(response.data['user']['last_name'], 'Doe')
-        self.assertEqual(response.data['user']['email'], 'jdoe@example.com')
-        self.assertTrue('access_token' in response.data['user'])
-        self.assertTrue('refresh_token' in response.data['user'])
+        self.assertEqual(response.data['first_name'], 'John')
+        self.assertEqual(response.data['last_name'], 'Doe')
+        self.assertEqual(response.data['email'], 'jdoe@example.com')
+        self.assertTrue('access_token' in response.data)
+        self.assertTrue('refresh_token' in response.data)
 
-    def test_login_email_with_trailing_whitespaces(self):
+        access_token = AccessToken(response.data['access_token'])
+        refresh_token = RefreshToken(response.data['refresh_token'])
+
+        self.assertEqual(access_token['user_id'], self.user.id)
+        self.assertEqual(refresh_token['user_id'], self.user.id)
+
+    def test_login_success_email_with_trailing_whitespaces(self):
         data = {
             'email': ' jdoe@example.com ',
             'password': 'ABC123!xyz',
@@ -215,12 +228,86 @@ class TestLogin(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['message'], _('Login successful'))
-        self.assertEqual(response.data['user']['first_name'], 'John')
-        self.assertEqual(response.data['user']['last_name'], 'Doe')
-        self.assertEqual(response.data['user']['email'], 'jdoe@example.com')
-        self.assertTrue('access_token' in response.data['user'])
-        self.assertTrue('refresh_token' in response.data['user'])
+        self.assertEqual(response.data['first_name'], 'John')
+        self.assertEqual(response.data['last_name'], 'Doe')
+        self.assertEqual(response.data['email'], 'jdoe@example.com')
+        self.assertTrue('access_token' in response.data)
+        self.assertTrue('refresh_token' in response.data)
+
+        access_token = AccessToken(response.data['access_token'])
+        refresh_token = RefreshToken(response.data['refresh_token'])
+
+        self.assertEqual(access_token['user_id'], self.user.id)
+        self.assertEqual(refresh_token['user_id'], self.user.id)
+
+    def test_login_password_with_trailing_whitespaces(self):
+        data = {
+            'email': 'jdoe@example.com',
+            'password': ' ABC123!xyz ',
+        }
+
+        response = self.client.post(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['errors'][0], core_errors.INVALID_CREDENTIALS)
+
+    def test_login_mismatch_email_invalid_password(self):
+        data = {
+            'password': 123,
+        }
+
+        response = self.client.post(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['errors'][0], core_errors.EMAIL_REQUIRED)
+        self.assertEqual(response.data['errors'][1], core_errors.PASSWORD_TYPE_MISMATCH)
+
+    def test_login_empty_email_invalid_password(self):
+        data = {
+            'email': '',
+            'password': 123,
+        }
+
+        response = self.client.post(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['errors'][0], core_errors.EMAIL_REQUIRED)
+        self.assertEqual(response.data['errors'][1], core_errors.PASSWORD_TYPE_MISMATCH)
+
+    def test_login_invalid_email_missing_password(self):
+        data = {
+            'email': 123,
+        }
+
+        response = self.client.post(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['errors'][0], core_errors.EMAIL_TYPE_MISMATCH)
+        self.assertEqual(response.data['errors'][1], core_errors.PASSWORD_REQUIRED)
+
+    def test_login_invalid_email_empty_password(self):
+        data = {
+            'email': 123,
+            'password': '',
+        }
+
+        response = self.client.post(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['errors'][0], core_errors.EMAIL_TYPE_MISMATCH)
+        self.assertEqual(response.data['errors'][1], core_errors.PASSWORD_REQUIRED)
+
+    def test_login_invalid_email_and_password(self):
+        data = {
+            'email': 123,
+            'password': 123,
+        }
+
+        response = self.client.post(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['errors'][0], core_errors.EMAIL_TYPE_MISMATCH)
+        self.assertEqual(response.data['errors'][1], core_errors.PASSWORD_TYPE_MISMATCH)
 
 class TestLogout(APITestCase):
 
@@ -232,79 +319,62 @@ class TestLogout(APITestCase):
             'password': 'ABC123!xyz',
         }
 
-        serializer = serializers.UserSerializer(data=data)
+        user = self.client.post(reverse('sign_up'), data, format='json')
 
-        if serializer.is_valid():
-            serializer.save()
-
-        user = self.client.post(reverse('login'), {
-            'email': 'jdoe@example.com',
-            'password': 'ABC123!xyz',
-        }, format='json')
+        self.access_token = AccessToken(user.data['access_token'])
+        self.refresh_token = RefreshToken(user.data['refresh_token'])
 
         self.url = reverse('logout')
 
-        self.refresh_token = user.data['user']['refresh_token']
-        self.access_token = user.data['user']['access_token']
-
     def test_logout_success(self):
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(self.access_token))
 
         response = self.client.post(self.url, {
-            'refresh_token': self.refresh_token,
+            'refresh_token': str(self.refresh_token),
         }, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['message'], _('Logout successful'))
 
     def test_logout_invalid_refresh_token(self):
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(self.access_token))
 
         response = self.client.post(self.url, {
             'refresh_token': 'invalid_refresh_token',
         }, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Invalid refresh token'))
+        self.assertEqual(response.data['errors'][0], core_errors.INVALID_REFRESH_TOKEN)
 
     def test_logout_missing_refresh_token(self):
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(self.access_token))
 
         response = self.client.post(self.url, {}, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Refresh token required'))
+        self.assertEqual(response.data['errors'][0], core_errors.REFRESH_TOKEN_REQUIRED)
 
     def test_logout_different_user(self):
-        serializer = serializers.UserSerializer(data={
+        data = {
             'first_name': 'Jane',
             'last_name': 'Doe',
             'email': 'jane_doe@example.com',
             'password': 'ABC123!xyz',
-        })
+        }
 
-        if serializer.is_valid():
-            serializer.save()
+        user = self.client.post(reverse('sign_up'), data, format='json')
 
-        user = self.client.post(reverse('login'), {
-            'email': 'jane_doe@example.com',
-            'password': 'ABC123!xyz',
-        }, format='json')
-
-        refresh_token_2 = user.data['user']['refresh_token']
-
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(self.access_token))
 
         response = self.client.post(self.url, {
-            'refresh_token': refresh_token_2,
+            'refresh_token': user.data['refresh_token'],
         }, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Invalid refresh token'))
+        self.assertEqual(response.data['errors'][0], core_errors.INVALID_REFRESH_TOKEN)
 
     def test_logout_not_logged_in(self):
         response = self.client.post(self.url, {
-            'refresh_token': self.refresh_token,
+            'refresh_token': str(self.refresh_token),
         }, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -325,14 +395,19 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['message'], _('Signup successful'))
-        self.assertEqual(response.data['user']['first_name'], 'John')
-        self.assertEqual(response.data['user']['last_name'], 'Doe')
-        self.assertEqual(response.data['user']['email'], 'jdoe@example.com')
-        self.assertTrue('access_token' in response.data['user'])
-        self.assertTrue('refresh_token' in response.data['user'])
+        self.assertEqual(response.data['first_name'], 'John')
+        self.assertEqual(response.data['last_name'], 'Doe')
+        self.assertEqual(response.data['email'], 'jdoe@example.com')
+        self.assertTrue('access_token' in response.data)
+        self.assertTrue('refresh_token' in response.data)
+
+        access_token = AccessToken(response.data['access_token'])
+        refresh_token = RefreshToken(response.data['refresh_token'])
 
         user = models.User.objects.get(email='jdoe@example.com')
+
+        self.assertEqual(access_token['user_id'], user.id)
+        self.assertEqual(refresh_token['user_id'], user.id)
 
         self.assertEqual(user.first_name, 'John')
         self.assertEqual(user.last_name, 'Doe')
@@ -346,12 +421,11 @@ class TestSignUp(APITestCase):
             'password': 'ABC123!xyz',
         }
 
-        self.client.post(self.url, data, format='json')
-
+        response = self.client.post(self.url, data, format='json')
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Account already exists'))
+        self.assertEqual(response.data['errors'][0], core_errors.ACCOUNT_ALREADY_EXISTS)
 
     def test_signup_missing_first_name(self):
         data = {
@@ -363,7 +437,7 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('First name required'))
+        self.assertEqual(response.data['errors'][0], core_errors.FIRST_NAME_REQUIRED)
 
     def test_signup_missing_last_name(self):
         data = {
@@ -375,7 +449,7 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Last name required'))
+        self.assertEqual(response.data['errors'][0], core_errors.LAST_NAME_REQUIRED)
 
     def test_signup_missing_email(self):
         data = {
@@ -387,7 +461,7 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Email required'))
+        self.assertEqual(response.data['errors'][0], core_errors.EMAIL_REQUIRED)
 
     def test_signup_missing_password(self):
         data = {
@@ -399,7 +473,7 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Password required'))
+        self.assertEqual(response.data['errors'][0], core_errors.PASSWORD_REQUIRED)
 
     def test_signup_empty_first_name(self):
         data = {
@@ -412,7 +486,7 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('First name required'))
+        self.assertEqual(response.data['errors'][0], core_errors.FIRST_NAME_REQUIRED)
 
     def test_signup_empty_last_name(self):
         data = {
@@ -425,7 +499,7 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Last name required'))
+        self.assertEqual(response.data['errors'][0], core_errors.LAST_NAME_REQUIRED)
 
     def test_signup_empty_email(self):
         data = {
@@ -438,7 +512,7 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Email required'))
+        self.assertEqual(response.data['errors'][0], core_errors.EMAIL_REQUIRED)
 
     def test_signup_empty_password(self):
         data = {
@@ -451,7 +525,34 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Password required'))
+        self.assertEqual(response.data['errors'][0], core_errors.PASSWORD_REQUIRED)
+
+    def test_signup_all_fields_missing(self):
+        data = {}
+
+        response = self.client.post(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['errors'][0], core_errors.FIRST_NAME_REQUIRED)
+        self.assertEqual(response.data['errors'][1], core_errors.LAST_NAME_REQUIRED)
+        self.assertEqual(response.data['errors'][2], core_errors.EMAIL_REQUIRED)
+        self.assertEqual(response.data['errors'][3], core_errors.PASSWORD_REQUIRED)
+
+    def test_signup_all_fields_empty(self):
+        data = {
+            'first_name': '',
+            'last_name': '',
+            'email': '',
+            'password': '',
+        }
+
+        response = self.client.post(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['errors'][0], core_errors.FIRST_NAME_REQUIRED)
+        self.assertEqual(response.data['errors'][1], core_errors.LAST_NAME_REQUIRED)
+        self.assertEqual(response.data['errors'][2], core_errors.EMAIL_REQUIRED)
+        self.assertEqual(response.data['errors'][3], core_errors.PASSWORD_REQUIRED)
 
     def test_signup_first_name_invalid_type(self):
         data = {
@@ -464,7 +565,7 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('First name must be a string'))
+        self.assertEqual(response.data['errors'][0], core_errors.FIRST_NAME_TYPE_MISMATCH)
 
     def test_signup_last_name_invalid_type(self):
         data = {
@@ -477,7 +578,7 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Last name must be a string'))
+        self.assertEqual(response.data['errors'][0], core_errors.LAST_NAME_TYPE_MISMATCH)
 
     def test_signup_email_invalid_type(self):
         data = {
@@ -490,7 +591,7 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Email must be a string'))
+        self.assertEqual(response.data['errors'][0], core_errors.EMAIL_TYPE_MISMATCH)
 
     def test_signup_password_invalid_type(self):
         data = {
@@ -503,33 +604,53 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Password must be a string'))
+        self.assertEqual(response.data['errors'][0], core_errors.PASSWORD_TYPE_MISMATCH)
 
-    def test_signup_first_name_too_short(self):
+    def test_signup_all_fields_invalid_type(self):
         data = {
-            'first_name': 'J',
-            'last_name': 'Doe',
-            'email': 'jdoe2@example.com',
-            'password': 'ABC123!xyz',
+            'first_name': 123,
+            'last_name': 123,
+            'email': 123,
+            'password': 123,
         }
 
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('First name must be between 2 and 64 characters'))
+        self.assertEqual(response.data['errors'][0], core_errors.FIRST_NAME_TYPE_MISMATCH)
+        self.assertEqual(response.data['errors'][1], core_errors.LAST_NAME_TYPE_MISMATCH)
+        self.assertEqual(response.data['errors'][2], core_errors.EMAIL_TYPE_MISMATCH)
+        self.assertEqual(response.data['errors'][3], core_errors.PASSWORD_TYPE_MISMATCH)
 
-    def test_signup_last_name_too_short(self):
+    def test_signup_missing_first_name_last_name_invalid_email_password(self):
         data = {
-            'first_name': 'John',
-            'last_name': 'D',
-            'email': 'jdoe2@example.com',
-            'password': 'ABC123!xyz',
+            'email': 123,
+            'password': 123,
         }
 
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Last name must be between 2 and 64 characters'))
+        self.assertEqual(response.data['errors'][0], core_errors.FIRST_NAME_REQUIRED)
+        self.assertEqual(response.data['errors'][1], core_errors.LAST_NAME_REQUIRED)
+        self.assertEqual(response.data['errors'][2], core_errors.EMAIL_TYPE_MISMATCH)
+        self.assertEqual(response.data['errors'][3], core_errors.PASSWORD_TYPE_MISMATCH)
+
+    def test_signup_empty_first_name_last_name_invalid_email_password(self):
+        data = {
+            'first_name': '',
+            'last_name': '',
+            'email': 123,
+            'password': 123,
+        }
+
+        response = self.client.post(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['errors'][0], core_errors.FIRST_NAME_REQUIRED)
+        self.assertEqual(response.data['errors'][1], core_errors.LAST_NAME_REQUIRED)
+        self.assertEqual(response.data['errors'][2], core_errors.EMAIL_TYPE_MISMATCH)
+        self.assertEqual(response.data['errors'][3], core_errors.PASSWORD_TYPE_MISMATCH)
 
     def test_signup_first_name_too_long(self):
         data = {
@@ -542,7 +663,7 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('First name must be between 2 and 64 characters'))
+        self.assertEqual(response.data['errors'][0], core_errors.FIRST_NAME_LENGTH_MISMATCH)
 
     def test_signup_last_name_too_long(self):
         data = {
@@ -555,7 +676,21 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Last name must be between 2 and 64 characters'))
+        self.assertEqual(response.data['errors'][0], core_errors.LAST_NAME_LENGTH_MISMATCH)
+
+    def test_signup_first_name_last_name_too_long(self):
+        data = {
+            'first_name': 'J' * 65,
+            'last_name': 'D' * 65,
+            'email': 'jdoe2@example.com',
+            'password': 'ABC123!xyz',
+        }
+
+        response = self.client.post(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['errors'][0], core_errors.FIRST_NAME_LENGTH_MISMATCH)
+        self.assertEqual(response.data['errors'][1], core_errors.LAST_NAME_LENGTH_MISMATCH)
 
     def test_signup_success_trailing_space_first_name(self):
         data = {
@@ -568,13 +703,19 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['user']['first_name'], 'John')
-        self.assertEqual(response.data['user']['last_name'], 'Doe')
-        self.assertEqual(response.data['user']['email'], 'jdoe2@example.com')
-        self.assertTrue('access_token' in response.data['user'])
-        self.assertTrue('refresh_token' in response.data['user'])
+        self.assertEqual(response.data['first_name'], 'John')
+        self.assertEqual(response.data['last_name'], 'Doe')
+        self.assertEqual(response.data['email'], 'jdoe2@example.com')
+        self.assertTrue('access_token' in response.data)
+        self.assertTrue('refresh_token' in response.data)
+
+        access_token = AccessToken(response.data['access_token'])
+        refresh_token = RefreshToken(response.data['refresh_token'])
 
         user = models.User.objects.get(email='jdoe2@example.com')
+
+        self.assertEqual(access_token['user_id'], user.id)
+        self.assertEqual(refresh_token['user_id'], user.id)
 
         self.assertEqual(user.first_name, 'John')
         self.assertEqual(user.last_name, 'Doe')
@@ -591,13 +732,19 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['user']['first_name'], 'John')
-        self.assertEqual(response.data['user']['last_name'], 'Doe')
-        self.assertEqual(response.data['user']['email'], 'jdoe2@example.com')
-        self.assertTrue('access_token' in response.data['user'])
-        self.assertTrue('refresh_token' in response.data['user'])
+        self.assertEqual(response.data['first_name'], 'John')
+        self.assertEqual(response.data['last_name'], 'Doe')
+        self.assertEqual(response.data['email'], 'jdoe2@example.com')
+        self.assertTrue('access_token' in response.data)
+        self.assertTrue('refresh_token' in response.data)
+
+        access_token = AccessToken(response.data['access_token'])
+        refresh_token = RefreshToken(response.data['refresh_token'])
 
         user = models.User.objects.get(email='jdoe2@example.com')
+
+        self.assertEqual(access_token['user_id'], user.id)
+        self.assertEqual(refresh_token['user_id'], user.id)
 
         self.assertEqual(user.first_name, 'John')
         self.assertEqual(user.last_name, 'Doe')
@@ -614,30 +761,52 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['user']['first_name'], 'John')
-        self.assertEqual(response.data['user']['last_name'], 'Doe')
-        self.assertEqual(response.data['user']['email'], 'jdoe2@example.com')
-        self.assertTrue('access_token' in response.data['user'])
-        self.assertTrue('refresh_token' in response.data['user'])
+        self.assertEqual(response.data['first_name'], 'John')
+        self.assertEqual(response.data['last_name'], 'Doe')
+        self.assertEqual(response.data['email'], 'jdoe2@example.com')
+        self.assertTrue('access_token' in response.data)
+        self.assertTrue('refresh_token' in response.data)
+
+        access_token = AccessToken(response.data['access_token'])
+        refresh_token = RefreshToken(response.data['refresh_token'])
 
         user = models.User.objects.get(email='jdoe2@example.com')
+
+        self.assertEqual(access_token['user_id'], user.id)
+        self.assertEqual(refresh_token['user_id'], user.id)
 
         self.assertEqual(user.first_name, 'John')
         self.assertEqual(user.last_name, 'Doe')
         self.assertTrue(user.check_password('ABC123!xyz'))
 
-    def test_signup_too_short_email(self):
+    def test_signup_success_trailing_space_password(self):
         data = {
             'first_name': 'John',
             'last_name': 'Doe',
-            'email': 'j@',
-            'password': 'ABC123!xyz',
+            'email': 'jdoe2@example.com',
+            'password': ' ABC123!xyz ',
         }
 
         response = self.client.post(self.url, data, format='json')
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Email must be between 3 and 192 characters'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['first_name'], 'John')
+        self.assertEqual(response.data['last_name'], 'Doe')
+        self.assertEqual(response.data['email'], 'jdoe2@example.com')
+        self.assertTrue('access_token' in response.data)
+        self.assertTrue('refresh_token' in response.data)
+
+        access_token = AccessToken(response.data['access_token'])
+        refresh_token = RefreshToken(response.data['refresh_token'])
+
+        user = models.User.objects.get(email='jdoe2@example.com')
+
+        self.assertEqual(access_token['user_id'], user.id)
+        self.assertEqual(refresh_token['user_id'], user.id)
+
+        self.assertEqual(user.first_name, 'John')
+        self.assertEqual(user.last_name, 'Doe')
+        self.assertTrue(user.check_password('ABC123!xyz'))
 
     def test_signup_too_long_email(self):
         data = {
@@ -650,7 +819,7 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Email must be between 3 and 192 characters'))
+        self.assertEqual(response.data['errors'][0], core_errors.EMAIL_LENGTH_MISMATCH)
 
     def test_signup_invalid_email(self):
         data = {
@@ -663,7 +832,7 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Email is invalid'))
+        self.assertEqual(response.data['errors'][0], core_errors.INVALID_EMAIL_FORMAT)
 
     def test_signup_password_less_than_8_characters(self):
         data = {
@@ -676,7 +845,7 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character'))
+        self.assertEqual(response.data['errors'][0], core_errors.PASSWORD_TOO_WEAK)
 
     def test_signup_password_no_uppercase(self):
         data = {
@@ -689,7 +858,7 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character'))
+        self.assertEqual(response.data['errors'][0], core_errors.PASSWORD_TOO_WEAK)
 
     def test_signup_password_no_lowercase(self):
         data = {
@@ -702,7 +871,7 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character'))
+        self.assertEqual(response.data['errors'][0], core_errors.PASSWORD_TOO_WEAK)
 
     def test_signup_password_no_number(self):
         data = {
@@ -715,7 +884,7 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character'))
+        self.assertEqual(response.data['errors'][0], core_errors.PASSWORD_TOO_WEAK)
 
     def test_signup_password_no_special_character(self):
         data = {
@@ -728,7 +897,36 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character'))
+        self.assertEqual(response.data['errors'][0], core_errors.PASSWORD_TOO_WEAK)
+
+    def test_signup_success_email_different_case(self):
+        data = {
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'email': 'jDoE@eXamPlE.Com',
+            'password': 'ABC123!xyz',
+        }
+
+        response = self.client.post(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['first_name'], 'John')
+        self.assertEqual(response.data['last_name'], 'Doe')
+        self.assertEqual(response.data['email'], 'jdoe@example.com')
+        self.assertTrue('access_token' in response.data)
+        self.assertTrue('refresh_token' in response.data)
+
+        access_token = AccessToken(response.data['access_token'])
+        refresh_token = RefreshToken(response.data['refresh_token'])
+
+        user = models.User.objects.get(email='jdoe@example.com')
+
+        self.assertEqual(user.id, access_token['user_id'])
+        self.assertEqual(user.id, refresh_token['user_id'])
+
+        self.assertEqual(user.first_name, 'John')
+        self.assertEqual(user.last_name, 'Doe')
+        self.assertTrue(user.check_password('ABC123!xyz'))
 
     def test_signup_duplicate_email_different_case(self):
         serializer = serializers.UserSerializer(data={
@@ -744,14 +942,14 @@ class TestSignUp(APITestCase):
         data = {
             'first_name': 'John',
             'last_name': 'Doe',
-            'email': 'JDOE@eXamplE.Com',
+            'email': 'jDoE@eXamPlE.Com',
             'password': 'ABC123!xyz',
         }
 
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Account already exists'))
+        self.assertEqual(response.data['errors'][0], core_errors.ACCOUNT_ALREADY_EXISTS)
 
     def test_signup_is_active_false_no_effect(self):
         data = {
@@ -765,14 +963,19 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['message'], _('Signup successful'))
-        self.assertEqual(response.data['user']['first_name'], 'John')
-        self.assertEqual(response.data['user']['last_name'], 'Doe')
-        self.assertEqual(response.data['user']['email'], 'jdoe@example.com')
-        self.assertTrue('access_token' in response.data['user'])
-        self.assertTrue('refresh_token' in response.data['user'])
+        self.assertEqual(response.data['first_name'], 'John')
+        self.assertEqual(response.data['last_name'], 'Doe')
+        self.assertEqual(response.data['email'], 'jdoe@example.com')
+        self.assertTrue('access_token' in response.data)
+        self.assertTrue('refresh_token' in response.data)
+
+        access_token = AccessToken(response.data['access_token'])
+        refresh_token = RefreshToken(response.data['refresh_token'])
 
         user = models.User.objects.get(email='jdoe@example.com')
+
+        self.assertEqual(user.id, access_token['user_id'])
+        self.assertEqual(user.id, refresh_token['user_id'])
 
         self.assertEqual(user.first_name, 'John')
         self.assertEqual(user.last_name, 'Doe')
@@ -791,14 +994,19 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['message'], _('Signup successful'))
-        self.assertEqual(response.data['user']['first_name'], 'John')
-        self.assertEqual(response.data['user']['last_name'], 'Doe')
-        self.assertEqual(response.data['user']['email'], 'jdoe@example.com')
-        self.assertTrue('access_token' in response.data['user'])
-        self.assertTrue('refresh_token' in response.data['user'])
+        self.assertEqual(response.data['first_name'], 'John')
+        self.assertEqual(response.data['last_name'], 'Doe')
+        self.assertEqual(response.data['email'], 'jdoe@example.com')
+        self.assertTrue('access_token' in response.data)
+        self.assertTrue('refresh_token' in response.data)
+
+        access_token = AccessToken(response.data['access_token'])
+        refresh_token = RefreshToken(response.data['refresh_token'])
 
         user = models.User.objects.get(email='jdoe@example.com')
+
+        self.assertEqual(user.id, access_token['user_id'])
+        self.assertEqual(user.id, refresh_token['user_id'])
 
         self.assertEqual(user.first_name, 'John')
         self.assertEqual(user.last_name, 'Doe')
@@ -817,14 +1025,19 @@ class TestSignUp(APITestCase):
         response = self.client.post(self.url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['message'], _('Signup successful'))
-        self.assertEqual(response.data['user']['first_name'], 'John')
-        self.assertEqual(response.data['user']['last_name'], 'Doe')
-        self.assertEqual(response.data['user']['email'], 'jdoe@example.com')
-        self.assertTrue('access_token' in response.data['user'])
-        self.assertTrue('refresh_token' in response.data['user'])
+        self.assertEqual(response.data['first_name'], 'John')
+        self.assertEqual(response.data['last_name'], 'Doe')
+        self.assertEqual(response.data['email'], 'jdoe@example.com')
+        self.assertTrue('access_token' in response.data)
+        self.assertTrue('refresh_token' in response.data)
+
+        access_token = AccessToken(response.data['access_token'])
+        refresh_token = RefreshToken(response.data['refresh_token'])
 
         user = models.User.objects.get(email='jdoe@example.com')
+
+        self.assertEqual(user.id, access_token['user_id'])
+        self.assertEqual(user.id, refresh_token['user_id'])
 
         self.assertEqual(user.first_name, 'John')
         self.assertEqual(user.last_name, 'Doe')
@@ -841,79 +1054,69 @@ class TestLoginRenew(APITestCase):
             'password': 'ABC123!xyz',
         }
 
-        serializer = serializers.UserSerializer(data=data)
+        user = self.client.post(reverse('sign_up'), data, format='json')
 
-        if serializer.is_valid():
-            serializer.save()
-
-        user = self.client.post(reverse('login'), {
-            'email': 'jdoe@example.com',
-            'password': 'ABC123!xyz',
-        })
-
-        self.access_token = user.data['user']['access_token']
-        self.refresh_token = user.data['user']['refresh_token']
+        self.access_token = AccessToken(user.data['access_token'])
+        self.refresh_token = RefreshToken(user.data['refresh_token'])
 
         self.url = reverse('login_renew')
 
     def test_login_renew_not_logged_in(self):
         response = self.client.post(self.url, {
-            'refresh_token': self.refresh_token,
+            'refresh_token': str(self.refresh_token),
         }, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_login_renew_no_refresh_token(self):
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(self.access_token))
 
         response = self.client.post(self.url, {}, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Refresh token required'))
+        self.assertEqual(response.data['errors'][0], core_errors.REFRESH_TOKEN_REQUIRED)
 
     def test_login_renew_invalid_refresh_token(self):
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(self.access_token))
 
         response = self.client.post(self.url, {
             'refresh_token': 'invalid_refresh_token',
         }, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Invalid refresh token'))
+        self.assertEqual(response.data['errors'][0], core_errors.INVALID_REFRESH_TOKEN)
 
     def test_login_renew_different_user_token(self):
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(self.access_token))
 
-        serializer = serializers.UserSerializer(data={
+        data = {
             'first_name': 'John',
             'last_name': 'Doe',
             'email': 'jane_doe@example.com',
             'password': 'ABC123!xyz',
-        })
+        }
 
-        if serializer.is_valid():
-            serializer.save()
+        user = self.client.post(reverse('sign_up'), data, format='json')
 
-        user = self.client.post(reverse('login'), {
-            'email': 'jane_doe@example.com',
-            'password': 'ABC123!xyz',
-        }, format='json')
-
-        refresh_token = user.data['user']['refresh_token']
+        refresh_token = user.data['refresh_token']
 
         response = self.client.post(self.url, {
             'refresh_token': refresh_token,
         }, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'][0], _('Invalid refresh token'))
+        self.assertEqual(response.data['errors'][0], core_errors.INVALID_REFRESH_TOKEN)
 
     def test_login_renew_success(self):
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(self.access_token))
 
         response = self.client.post(self.url, {
-            'refresh_token': self.refresh_token,
+            'refresh_token': str(self.refresh_token),
         }, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue('access_token' in response.data['user'])
+        self.assertTrue('access_token' in response.data)
+
+        access_token = AccessToken(response.data['access_token'])
+
+        self.assertEqual(access_token['user_id'], self.access_token['user_id'])

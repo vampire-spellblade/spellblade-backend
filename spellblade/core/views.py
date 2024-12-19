@@ -1,17 +1,18 @@
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
-from django.contrib.auth import authenticate
+
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.exceptions import TokenError
+
+from django.contrib.auth import authenticate
 from django.core.validators import EmailValidator
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from rest_framework_simplejwt.exceptions import TokenError
-from django.utils.translation import gettext_lazy as _
+
 from . import models
 from . import serializers
+from . import errors as core_errors
 
 @api_view(['POST'])
 @authentication_classes([])
@@ -23,19 +24,19 @@ def login(request):
     password = request.data.get('password')
 
     if not email:
-        errors.append(_('Email required'))
+        errors.append(core_errors.EMAIL_REQUIRED)
     elif not isinstance(email, str):
-        errors.append(_('Email must be a string'))
+        errors.append(core_errors.EMAIL_TYPE_MISMATCH)
     else:
         email = email.strip().lower()
 
     if not password:
-        errors.append(_('Password required'))
+        errors.append(core_errors.PASSWORD_REQUIRED)
     elif not isinstance(password, str):
-        errors.append(_('Password must be a string'))
+        errors.append(core_errors.PASSWORD_TYPE_MISMATCH)
 
     if len(errors) > 0:
-        return Response({ 'error': errors }, status=status.HTTP_400_BAD_REQUEST)
+        return Response({ 'errors': errors }, status=status.HTTP_400_BAD_REQUEST)
 
     user = authenticate(email=email, password=password)
 
@@ -44,36 +45,33 @@ def login(request):
         access_token = str(refresh_token.access_token)
 
         return Response({
-            'message': _('Login successful'),
-            'user': {
-                'email': user.email,
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-                'access_token': access_token,
-                'refresh_token': str(refresh_token),
-            },
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'access_token': access_token,
+            'refresh_token': str(refresh_token),
         }, status=status.HTTP_200_OK)
     else:
-        return Response({ 'error': [_('Incorrect email or password')] }, status=status.HTTP_400_BAD_REQUEST)
+        return Response({ 'errors': [core_errors.INVALID_CREDENTIALS] }, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 def logout(request):
     refresh_token = request.data.get('refresh_token')
 
     if not refresh_token:
-        return Response({ 'error': [_('Refresh token required')] }, status=status.HTTP_400_BAD_REQUEST)
+        return Response({ 'errors': [core_errors.REFRESH_TOKEN_REQUIRED] }, status=status.HTTP_400_BAD_REQUEST)
 
     try:
         refresh_token = RefreshToken(refresh_token)
     except TokenError:
-        return Response({ 'error': [_('Invalid refresh token')] }, status=status.HTTP_400_BAD_REQUEST)
+        return Response({ 'errors': [core_errors.INVALID_REFRESH_TOKEN] }, status=status.HTTP_400_BAD_REQUEST)
 
     if refresh_token['user_id'] != request.user.id:
-        return Response({ 'error': [_('Invalid refresh token')] }, status=status.HTTP_400_BAD_REQUEST)
+        return Response({ 'errors': [core_errors.INVALID_REFRESH_TOKEN] }, status=status.HTTP_400_BAD_REQUEST)
 
     refresh_token.blacklist()
 
-    return Response({ 'message': _('Logout successful') }, status=status.HTTP_200_OK)
+    return Response(status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @authentication_classes([])
@@ -87,57 +85,57 @@ def sign_up(request):
     password = request.data.get('password')
 
     if not first_name:
-        errors.append(_('First name required'))
+        errors.append(core_errors.FIRST_NAME_REQUIRED)
     elif not isinstance(first_name, str):
-        errors.append(_('First name must be a string'))
+        errors.append(core_errors.FIRST_NAME_TYPE_MISMATCH)
     else:
         first_name = first_name.strip()
 
-        if len(first_name) < 2 or len(first_name) > 64:
-            errors.append(_('First name must be between 2 and 64 characters'))
+        if len(first_name) > 64:
+            errors.append(core_errors.FIRST_NAME_LENGTH_MISMATCH)
 
     if not last_name:
-        errors.append(_('Last name required'))
+        errors.append(core_errors.LAST_NAME_REQUIRED)
     elif not isinstance(last_name, str):
-        errors.append(_('Last name must be a string'))
+        errors.append(core_errors.LAST_NAME_TYPE_MISMATCH)
     else:
         last_name = last_name.strip()
 
-        if len(last_name) < 2 or len(last_name) > 64:
-            errors.append(_('Last name must be between 2 and 64 characters'))
+        if len(last_name) > 64:
+            errors.append(core_errors.LAST_NAME_LENGTH_MISMATCH)
 
     if not email:
-        errors.append(_('Email required'))
+        errors.append(core_errors.EMAIL_REQUIRED)
     elif not isinstance(email, str):
-        errors.append(_('Email must be a string'))
+        errors.append(core_errors.EMAIL_TYPE_MISMATCH)
     else:
         email = email.strip().lower()
 
         validate_email = EmailValidator()
 
-        if len(email) < 3 or len(email) > 192:
-            errors.append(_('Email must be between 3 and 192 characters'))
+        if len(email) > 192:
+            errors.append(core_errors.EMAIL_LENGTH_MISMATCH)
         else:
             try:
                 validate_email(email)
             except ValidationError:
-                errors.append(_('Email is invalid'))
+                errors.append(core_errors.INVALID_EMAIL_FORMAT)
 
     if not password:
-        errors.append(_('Password required'))
+        errors.append(core_errors.PASSWORD_REQUIRED)
     elif not isinstance(password, str):
-        errors.append(_('Password must be a string'))
+        errors.append(core_errors.PASSWORD_TYPE_MISMATCH)
     else:
         try:
             validate_password(password)
         except ValidationError:
-            errors.append(_('Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character'))
+            errors.append(core_errors.PASSWORD_TOO_WEAK)
 
     if models.User.objects.filter(email=email).exists():
-        errors.append(_('Account already exists'))
+        errors.append(core_errors.ACCOUNT_ALREADY_EXISTS)
 
     if len(errors) > 0:
-        return Response({ 'error': errors }, status=status.HTTP_400_BAD_REQUEST)
+        return Response({ 'errors': errors }, status=status.HTTP_400_BAD_REQUEST)
 
     serializer = serializers.UserSerializer(data={
         'first_name': first_name,
@@ -153,32 +151,29 @@ def sign_up(request):
         access_token = str(refresh_token.access_token)
 
         return Response({
-            'message': _('Signup successful'),
-            'user': {
-                'email': user.email,
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-                'access_token': access_token,
-                'refresh_token': str(refresh_token),
-            },
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'access_token': access_token,
+            'refresh_token': str(refresh_token),
         }, status=status.HTTP_200_OK)
     else:
-        return Response({ 'error': _('Invalid data') }, status=status.HTTP_400_BAD_REQUEST)
+        return Response({ 'errors': [core_errors.UNEXPECTED_ERROR] }, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 def login_renew(request):
     refresh_token = request.data.get('refresh_token')
 
     if not refresh_token:
-        return Response({ 'error': [_('Refresh token required')] }, status=status.HTTP_400_BAD_REQUEST)
+        return Response({ 'errors': [core_errors.REFRESH_TOKEN_REQUIRED] }, status=status.HTTP_400_BAD_REQUEST)
 
     try:
         refresh_token = RefreshToken(refresh_token)
     except TokenError:
-        return Response({ 'error': [_('Invalid refresh token')] }, status=status.HTTP_400_BAD_REQUEST)
+        return Response({ 'errors': [core_errors.INVALID_REFRESH_TOKEN] }, status=status.HTTP_400_BAD_REQUEST)
 
     if refresh_token['user_id'] != request.user.id:
-        return Response({ 'error': [_('Invalid refresh token')] }, status=status.HTTP_400_BAD_REQUEST)
+        return Response({ 'errors': [core_errors.INVALID_REFRESH_TOKEN] }, status=status.HTTP_400_BAD_REQUEST)
 
     access_token = str(refresh_token.access_token)
-    return Response({ 'user': { 'access_token': access_token } }, status=status.HTTP_200_OK)
+    return Response({ 'access_token': access_token }, status=status.HTTP_200_OK)
