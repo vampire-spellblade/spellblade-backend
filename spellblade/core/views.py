@@ -5,9 +5,9 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 
-from django.contrib.auth import authenticate
 from django.core.validators import EmailValidator
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 
 from . import models
@@ -42,13 +42,13 @@ def login(request):
 
     if user is not None:
         refresh_token = RefreshToken.for_user(user)
-        access_token = str(refresh_token.access_token)
+        access_token = refresh_token.access_token
 
         return Response({
             'email': user.email,
             'first_name': user.first_name,
             'last_name': user.last_name,
-            'access_token': access_token,
+            'access_token': str(access_token),
             'refresh_token': str(refresh_token),
         }, status=status.HTTP_200_OK)
     else:
@@ -76,13 +76,14 @@ def logout(request):
 @api_view(['POST'])
 @authentication_classes([])
 @permission_classes([])
-def sign_up(request):
+def signup(request):
     errors = []
 
     first_name = request.data.get('first_name')
     last_name = request.data.get('last_name')
     email = request.data.get('email')
-    password = request.data.get('password')
+    password1 = request.data.get('password1')
+    password2 = request.data.get('password2')
 
     if not first_name:
         errors.append(core_errors.FIRST_NAME_REQUIRED)
@@ -121,15 +122,24 @@ def sign_up(request):
             except ValidationError:
                 errors.append(core_errors.INVALID_EMAIL_FORMAT)
 
-    if not password:
-        errors.append(core_errors.PASSWORD_REQUIRED)
-    elif not isinstance(password, str):
-        errors.append(core_errors.PASSWORD_TYPE_MISMATCH)
-    else:
-        try:
-            validate_password(password)
-        except ValidationError:
-            errors.append(core_errors.PASSWORD_TOO_WEAK)
+    if not password1:
+        errors.append(core_errors.PASSWORD1_REQUIRED)
+    elif not isinstance(password1, str):
+        errors.append(core_errors.PASSWORD1_TYPE_MISMATCH)
+
+    if not password2:
+        errors.append(core_errors.PASSWORD2_REQUIRED)
+    elif not isinstance(password2, str):
+        errors.append(core_errors.PASSWORD2_TYPE_MISMATCH)
+
+    if core_errors.PASSWORD1_REQUIRED not in errors and core_errors.PASSWORD2_REQUIRED not in errors and core_errors.PASSWORD1_TYPE_MISMATCH not in errors and core_errors.PASSWORD2_TYPE_MISMATCH not in errors:
+        if password1 != password2:
+            errors.append(core_errors.PASSWORDS_MISMATCH)
+        else:
+            try:
+                validate_password(password1)
+            except ValidationError:
+                errors.append(core_errors.PASSWORD_TOO_WEAK)
 
     if models.User.objects.filter(email=email).exists():
         errors.append(core_errors.ACCOUNT_ALREADY_EXISTS)
@@ -141,20 +151,20 @@ def sign_up(request):
         'first_name': first_name,
         'last_name': last_name,
         'email': email,
-        'password': password,
+        'password': password1,
     })
 
     if serializer.is_valid():
         user = serializer.save()
 
         refresh_token = RefreshToken.for_user(user)
-        access_token = str(refresh_token.access_token)
+        access_token = refresh_token.access_token
 
         return Response({
             'email': user.email,
             'first_name': user.first_name,
             'last_name': user.last_name,
-            'access_token': access_token,
+            'access_token': str(access_token),
             'refresh_token': str(refresh_token),
         }, status=status.HTTP_200_OK)
     else:
@@ -175,5 +185,5 @@ def login_renew(request):
     if refresh_token['user_id'] != request.user.id:
         return Response({ 'errors': [core_errors.INVALID_REFRESH_TOKEN] }, status=status.HTTP_400_BAD_REQUEST)
 
-    access_token = str(refresh_token.access_token)
-    return Response({ 'access_token': access_token }, status=status.HTTP_200_OK)
+    access_token = refresh_token.access_token
+    return Response({ 'access_token': str(access_token) }, status=status.HTTP_200_OK)
