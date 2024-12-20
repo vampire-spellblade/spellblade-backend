@@ -10,6 +10,8 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 
+from datetime import datetime, timezone
+
 from . import models
 from . import serializers
 from . import errors as core_errors
@@ -30,6 +32,12 @@ def login(request):
     else:
         email = email.strip().lower()
 
+        user = models.User.objects.filter(email=email).first()
+        if not user:
+            errors.append(core_errors.ACCOUNT_DOES_NOT_EXIST)
+        elif not user.is_active:
+            errors.append(core_errors.ACCOUNT_INACTIVE)
+
     if not password:
         errors.append(core_errors.PASSWORD_REQUIRED)
     elif not isinstance(password, str):
@@ -49,13 +57,17 @@ def login(request):
             'first_name': user.first_name,
             'last_name': user.last_name,
             'access_token': str(access_token),
+            'access_token_expiry': datetime.fromtimestamp(access_token['exp'], tz=timezone.utc).isoformat(),
             'refresh_token': str(refresh_token),
+            'refresh_token_expiry': datetime.fromtimestamp(refresh_token['exp'], tz=timezone.utc).isoformat(),
         }, status=status.HTTP_200_OK)
     else:
-        return Response({ 'errors': [core_errors.INVALID_CREDENTIALS] }, status=status.HTTP_400_BAD_REQUEST)
+        return Response({ 'errors': [core_errors.INCORRECT_PASSWORD] }, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
-def logout(request):
+@authentication_classes([])
+@permission_classes([])
+def login_renew(request):
     refresh_token = request.data.get('refresh_token')
 
     if not refresh_token:
@@ -66,12 +78,11 @@ def logout(request):
     except TokenError:
         return Response({ 'errors': [core_errors.INVALID_REFRESH_TOKEN] }, status=status.HTTP_400_BAD_REQUEST)
 
-    if refresh_token['user_id'] != request.user.id:
-        return Response({ 'errors': [core_errors.INVALID_REFRESH_TOKEN] }, status=status.HTTP_400_BAD_REQUEST)
-
-    refresh_token.blacklist()
-
-    return Response(status=status.HTTP_200_OK)
+    access_token = refresh_token.access_token
+    return Response({
+        'access_token': str(access_token),
+        'access_token_expiry': datetime.fromtimestamp(access_token['exp'], tz=timezone.utc).isoformat(),
+    }, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @authentication_classes([])
@@ -155,35 +166,8 @@ def signup(request):
     })
 
     if serializer.is_valid():
-        user = serializer.save()
+        serializer.save()
 
-        refresh_token = RefreshToken.for_user(user)
-        access_token = refresh_token.access_token
-
-        return Response({
-            'email': user.email,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'access_token': str(access_token),
-            'refresh_token': str(refresh_token),
-        }, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK)
     else:
         return Response({ 'errors': [core_errors.UNEXPECTED_ERROR] }, status=status.HTTP_400_BAD_REQUEST)
-
-@api_view(['POST'])
-def login_renew(request):
-    refresh_token = request.data.get('refresh_token')
-
-    if not refresh_token:
-        return Response({ 'errors': [core_errors.REFRESH_TOKEN_REQUIRED] }, status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        refresh_token = RefreshToken(refresh_token)
-    except TokenError:
-        return Response({ 'errors': [core_errors.INVALID_REFRESH_TOKEN] }, status=status.HTTP_400_BAD_REQUEST)
-
-    if refresh_token['user_id'] != request.user.id:
-        return Response({ 'errors': [core_errors.INVALID_REFRESH_TOKEN] }, status=status.HTTP_400_BAD_REQUEST)
-
-    access_token = refresh_token.access_token
-    return Response({ 'access_token': str(access_token) }, status=status.HTTP_200_OK)
