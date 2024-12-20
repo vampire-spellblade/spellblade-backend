@@ -25,6 +25,13 @@ class TestLogin(APITestCase):
 
         self.url = reverse('login')
 
+    # GET request
+
+    def test_login_failure_get_request(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
     # Missing fields
 
     def test_login_failure_missing_email(self):
@@ -226,6 +233,15 @@ class TestLogout(APITestCase):
         self.access_token = str(self.access_token)
 
         self.url = reverse('logout')
+
+    # GET request
+
+    def test_logout_failure_get_request(self):
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
+
+        response = self.client.get(self.url, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     # Not logged in
 
@@ -1016,6 +1032,13 @@ class TestSignUp(APITestCase):
         self.assertTrue(user.check_password('ABC123!xyz'))
         self.assertFalse(user.is_staff)
 
+    # GET request
+
+    def test_signup_failure_get_request(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
 class TestLoginRenew(APITestCase):
 
     def setUp(self):
@@ -1038,6 +1061,15 @@ class TestLoginRenew(APITestCase):
         self.access_token = str(self.access_token)
 
         self.url = reverse('login_renew')
+
+    # GET request
+
+    def test_login_renew_failure_get_request(self):
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     # Not logged in
 
