@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
-from .forms import UserCreationForm, UserChangeForm
+from django.utils.translation import gettext_lazy as _
+from .forms import UserCreationForm, UserChangeForm, AdminPasswordChangeForm
 from . import models
 
 admin.site.unregister(Group)
@@ -28,10 +29,12 @@ class Users(UserAdmin):
         (None, {
             'fields': ('email', 'password',)
         }),
-        ('Personal info', {
+        (_('Personal info'), {
             'fields': ('first_name', 'last_name',)
         }),
-        ('Permissions', {
+        (_('Permissions'), {
             'fields': ('is_active', 'is_staff', 'groups', 'user_permissions',)
         }),
     )
+
+    change_password_form = AdminPasswordChangeForm
