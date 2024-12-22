@@ -18,8 +18,8 @@ class UpdateUserPersonalInfoSerializer(serializers.ModelSerializer):
         fields = ('first_name', 'last_name',)
 
     def update(self, instance, validated_data):
-        instance.first_name = validated_data.pop('first_name', instance.first_name)
-        instance.last_name = validated_data.pop('last_name', instance.last_name)
+        instance.first_name = validated_data.pop('first_name')
+        instance.last_name = validated_data.pop('last_name')
         instance.save()
         return instance
 
@@ -39,7 +39,7 @@ class UpdateUserEmailSerializer(serializers.ModelSerializer):
         return attrs
 
     def update(self, instance, validated_data):
-        instance.email = validated_data.pop('email', instance.email)
+        instance.email = validated_data.pop('email')
         instance.save()
         return instance
 
