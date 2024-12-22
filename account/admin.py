@@ -37,4 +37,5 @@ class Users(UserAdmin):
         }),
     )
 
+    change_user_password_template = 'password_change_form.html'
     change_password_form = AdminPasswordChangeForm
