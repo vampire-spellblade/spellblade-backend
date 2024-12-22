@@ -8,4 +8,7 @@ urlpatterns = [
     path('login/verify/', token_verify, name='login_verify'),
     path('logout/', token_blacklist, name='logout'),
     path('signup/', views.signup, name='signup'),
+    path('update/personal_info/', views.update_personal_info, name='update_personal_info'),
+    path('update/email/', views.update_email, name='update_email'),
+    path('update/password/', views.update_password, name='update_password'),
 ]
