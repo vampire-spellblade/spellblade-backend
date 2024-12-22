@@ -1,3 +1,40 @@
+POST http://127.0.0.1:8000/api/account/login/ HTTP/1.1
+content-type: application/json
+
+{
+    "email": "johndoe@example.com",
+    "password": "ABC123!xyz"
+}
+
+###
+
+POST http://127.0.0.1:8000/api/account/login/verify/ HTTP/1.1
+content-type: application/json
+
+{
+    "token": ""
+}
+
+###
+
+POST http://127.0.0.1:8000/api/account/login/renew/ HTTP/1.1
+content-type: application/json
+
+{
+    "refresh": ""
+}
+
+###
+
+POST http://127.0.0.1:8000/api/account/logout/ HTTP/1.1
+content-type: application/json
+
+{
+    "refresh": ""
+}
+
+###
+
 POST http://127.0.0.1:8000/api/account/signup/ HTTP/1.1
 content-type: application/json
 

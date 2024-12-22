@@ -2,10 +2,13 @@ from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
 from django.utils.translation import gettext_lazy as _
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 from .forms import UserCreationForm, UserChangeForm, AdminPasswordChangeForm
 from . import models
 
 admin.site.unregister(Group)
+admin.site.unregister(OutstandingToken)
+admin.site.unregister(BlacklistedToken)
 
 @admin.register(models.Group)
 class Groups(GroupAdmin):
