@@ -3,6 +3,7 @@ from rest_framework_simplejwt.views import token_obtain_pair, token_refresh, tok
 from . import views
 
 urlpatterns = [
+    path('', views.get_user, name='get_user'),
     path('login/', token_obtain_pair, name='login'),
     path('login/renew/', token_refresh, name='login_renew'),
     path('login/verify/', token_verify, name='login_verify'),

@@ -11,7 +11,7 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
 
-class UpdateUserPersonalInfoSerializer(serializers.ModelSerializer):
+class UserPersonalInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
@@ -23,7 +23,7 @@ class UpdateUserPersonalInfoSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-class UpdateUserEmailSerializer(serializers.ModelSerializer):
+class UserEmailSerializer(serializers.ModelSerializer):
     current_password = serializers.CharField(write_only=True)
 
     class Meta:
@@ -43,7 +43,7 @@ class UpdateUserEmailSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-class UpdateUserPasswordSerializer(serializers.ModelSerializer):
+class UserPasswordSerializer(serializers.ModelSerializer):
     current_password = serializers.CharField(write_only=True)
     new_password = serializers.CharField(write_only=True)
 
