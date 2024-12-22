@@ -12,9 +12,19 @@
             "command": "python manage.py migrate"
         },
         {
-            "label": "test",
+            "label": "create superuser",
+            "type": "shell",
+            "command": "python manage.py createsuperuser"
+        },
+        {
+            "label": "test all",
             "type": "shell",
             "command": "python manage.py test"
+        },
+        {
+            "label": "test account",
+            "type": "shell",
+            "command": "python manage.py test account"
         },
     ]
 }
