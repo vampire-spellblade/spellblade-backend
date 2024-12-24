@@ -1,5 +1,0 @@
-django
-django-cors-headers
-django-environ
-djangorestframework
-psycopg2
