@@ -8,7 +8,7 @@ db.sqlite3
 db.sqlite3-journal
 media
 
-# collectstatic
+# Django collectstatic
 static/
 
 # Byte-compiled / optimized / DLL files
@@ -137,3 +137,12 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# Django migrations
+
+*/migrations/*.py
+
+# REST Client
+
+*.rest
+*.http
