@@ -1,24 +1,39 @@
 # pylint: disable=missing-module-docstring
+
 from django.contrib import admin
-from django.contrib.auth.models import Group
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin, GroupAdmin as BaseGroupAdmin
+from django.contrib.auth.models import Group as DjangoGroup
+from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import (
+    UserAdmin as BaseUserAdmin,
+    GroupAdmin as BaseGroupAdmin,
+)
 from django.utils.translation import gettext_lazy as _
-from . import models
-from . import forms
+from .models import Group
+from .forms import AdminUserCreationForm, UserChangeForm
 
-admin.site.unregister(Group)
+# ========================================
+# Group
+# ========================================
 
-@admin.register(models.Group)
-class GroupAdmin(BaseGroupAdmin):   # pylint: disable=missing-class-docstring
+admin.site.unregister(DjangoGroup)
+
+@admin.register(Group)
+class GroupAdmin(BaseGroupAdmin): # pylint: disable=missing-class-docstring
     pass
 
-@admin.register(models.User)
+# ========================================
+# User
+# ========================================
+
+User = get_user_model()
+
+@admin.register(User)
 class UserAdmin(BaseUserAdmin): # pylint: disable=missing-class-docstring
     ordering = ('email',)
     list_display = ('email', 'first_name', 'last_name', 'is_staff',)
     search_fields = ('first_name', 'last_name', 'email',)
 
-    add_form = forms.AdminUserCreationForm
+    add_form = AdminUserCreationForm
     add_fieldsets = (
         (
             None,
@@ -36,7 +51,7 @@ class UserAdmin(BaseUserAdmin): # pylint: disable=missing-class-docstring
         ),
     )
 
-    form = forms.UserChangeForm
+    form = UserChangeForm
     fieldsets = (
         (
             None, {

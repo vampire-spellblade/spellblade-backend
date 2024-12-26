@@ -1,9 +1,12 @@
 # pylint: disable=missing-module-docstring
+
 from django.contrib.auth.models import BaseUserManager
 
-class UserManager(BaseUserManager): # pylint: disable=missing-class-docstring
+class UserManager(BaseUserManager):
+    '''Manager for user model'''
 
-    def create_user(self, email=None, password=None, **extra_fields):   # pylint: disable=missing-function-docstring
+    def create_user(self, email=None, password=None, **extra_fields):
+        '''Creates a new user'''
         user = self.model(
             email=self.normalize_email(email),
             **extra_fields
@@ -13,7 +16,8 @@ class UserManager(BaseUserManager): # pylint: disable=missing-class-docstring
 
         return user
 
-    def create_superuser(self, email=None, password=None, **extra_fields):  # pylint: disable=missing-function-docstring
+    def create_superuser(self, email=None, password=None, **extra_fields):
+        '''Creates a new superuser'''
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 

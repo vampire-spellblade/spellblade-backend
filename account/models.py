@@ -1,8 +1,12 @@
 # pylint: disable=missing-module-docstring
+
 from django.db import models
-from django.contrib.auth.models import AbstractUser, Group as AbstractGroup
+from django.contrib.auth.models import (
+    AbstractUser,
+    Group as DjangoGroup,
+)
 from django.utils.translation import gettext_lazy as _
-from . import managers
+from .managers import UserManager
 
 class User(AbstractUser):
     '''
@@ -17,13 +21,13 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ('first_name', 'last_name',)
 
-    objects = managers.UserManager()
+    objects = UserManager()
 
     def __str__(self) -> str:
         return self.email
 
-class Group(AbstractGroup):
-    '''Proxy model for django.contrib.auth.models.Group'''
+class Group(DjangoGroup):
+    '''Proxy model for DjangoGroup'''
 
     class Meta: # pylint: disable=missing-class-docstring,too-few-public-methods
         proxy = True
