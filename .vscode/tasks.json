@@ -25,6 +25,16 @@
             "label": "createsuperuser",
             "type": "shell",
             "command": "python manage.py createsuperuser"
+        },
+        {
+            "label": "makemigrations account",
+            "type": "shell",
+            "command": "python manage.py makemigrations account"
+        },
+        {
+            "label": "test account",
+            "type": "shell",
+            "command": "python manage.py test account"
         }
     ]
 }

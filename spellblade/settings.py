@@ -1,5 +1,6 @@
-import environ
+# pylint: disable=missing-module-docstring
 from pathlib import Path
+import environ
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -65,6 +66,8 @@ DATABASES = {
         'TEST': {'NAME': 'spellblade_test',},
     }
 }
+
+AUTH_USER_MODEL = 'account.User'
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
