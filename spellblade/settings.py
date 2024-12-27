@@ -8,11 +8,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
 environ.Env.read_env(BASE_DIR / '.env')
 
-SECRET_KEY = env('SECRET_KEY')
+SECRET_KEY = env('SECRET_KEY').strip()
+SECRET_KEY_FALLBACKS = [
+    SECRET_KEY_FALLBACK.strip()
+        for SECRET_KEY_FALLBACK in env.list('SECRET_KEY_FALLBACKS', default=[])
+]
 DEBUG = env.bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
-CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[])
+ALLOWED_HOSTS = [
+    ALLOWED_HOST.strip()
+        for ALLOWED_HOST in env.list('ALLOWED_HOSTS', default=[])
+]
+CORS_ALLOWED_ORIGINS = [
+    CORS_ALLOWED_ORIGIN.strip()
+        for CORS_ALLOWED_ORIGIN in env.list('CORS_ALLOWED_ORIGINS', default=[])
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -56,13 +66,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'spellblade.wsgi.application'
 
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 200
+DATA_UPLOAD_MAX_NUMBER_FILES = 1
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': env('DB_NAME', default='spellblade'),
-        'USER': env('DB_USER', default='spellblade'),
-        'PASSWORD': env('DB_PASSWORD'),
-        'HOST': env('DB_HOST', default='localhost'),
+        'NAME': env('DB_NAME', default='spellblade').strip(),
+        'USER': env('DB_USER', default='spellblade').strip(),
+        'PASSWORD': env('DB_PASSWORD').strip(),
+        'HOST': env('DB_HOST', default='localhost').strip(),
         'PORT': env.int('DB_PORT', default=5432),
         'TEST': {'NAME': 'spellblade_test',},
     }
@@ -76,6 +89,15 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
+
+EMAIL_HOST = env('EMAIL_HOST').strip()
+EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL', False)
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', True)
+EMAIL_HOST_USER = env('EMAIL_HOST_USER').strip()
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD').strip()
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL').strip()
+EMAIL_SUBJECT_PREFIX = env('EMAIL_SUBJECT_PREFIX', default='')
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
