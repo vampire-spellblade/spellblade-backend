@@ -90,6 +90,13 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
+SERVER_EMAIL = env('SERVER_EMAIL').strip()
+ADMINS = [
+    [(name.strip(), email.strip()) for name, email in [admin.split(':')]].pop()
+        for admin in env.list('ADMINS', default=[])
+]
+MANAGERS = ADMINS
+
 EMAIL_HOST = env('EMAIL_HOST').strip()
 EMAIL_PORT = env.int('EMAIL_PORT', default=587)
 EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL', False)
