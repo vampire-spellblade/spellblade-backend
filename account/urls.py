@@ -1,7 +1,10 @@
 # pylint: disable=missing-module-docstring
 
-from django.urls import path # pylint: disable=unused-import
-#from .views import ()
+from django.urls import path
+from .views import (
+    SignUpView
+)
 
 urlpatterns = [
+    path('signup/', SignUpView.as_view(), name='signup'),
 ]

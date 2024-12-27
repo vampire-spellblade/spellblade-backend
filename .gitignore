@@ -143,3 +143,7 @@ cython_debug/
 
 # PyCharm
 .idea/
+
+# REST Client
+*.rest
+*.http
