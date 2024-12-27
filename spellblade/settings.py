@@ -1,6 +1,7 @@
 # pylint: disable=missing-module-docstring
 
 from pathlib import Path
+from datetime import timedelta
 import environ
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -13,7 +14,7 @@ SECRET_KEY_FALLBACKS = [
     SECRET_KEY_FALLBACK.strip()
         for SECRET_KEY_FALLBACK in env.list('SECRET_KEY_FALLBACKS', default=[])
 ]
-DEBUG = env.bool('DEBUG', default=False)
+DEBUG = env.bool('DEBUG_VALUE', default=False)
 
 ALLOWED_HOSTS = [
     ALLOWED_HOST.strip()
@@ -66,6 +67,21 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'spellblade.wsgi.application'
 
+SECURE_SSL_REDIRECT = env.bool('SSL_ENABLE', default=True)
+SECURE_PROXY_SSL_HEADER = \
+    ('HTTP_X_FORWARDED_PROTO', 'https') if env.bool('SSL_ENABLE', default=True) else None
+USE_X_FORWARDED_HOST = env.bool('SSL_ENABLE', default=True)
+USE_X_FORWARDED_PORT = env.bool('SSL_ENABLE', default=True)
+
+CSRF_COOKIE_SECURE = env.bool('SSL_ENABLE', default=True)
+SESSION_COOKIE_SECURE = env.bool('SSL_ENABLE', default=True)
+
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool('SSL_ENABLE', default=True)
+SECURE_HSTS_PRELOAD = env.bool('SSL_ENABLE', default=True)
+SECURE_HSTS_SECONDS = int(
+    timedelta(days=365).total_seconds()
+) if env.bool('SSL_ENABLE', default=True) else 0
+
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 200
 DATA_UPLOAD_MAX_NUMBER_FILES = 1
 
@@ -95,7 +111,6 @@ ADMINS = [
     [(name.strip(), email.strip()) for name, email in [admin.split(':')]].pop()
         for admin in env.list('ADMINS', default=[])
 ]
-MANAGERS = ADMINS
 
 EMAIL_HOST = env('EMAIL_HOST').strip()
 EMAIL_PORT = env.int('EMAIL_PORT', default=587)

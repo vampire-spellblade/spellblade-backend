@@ -27,6 +27,11 @@
             "command": "python manage.py createsuperuser"
         },
         {
+            "label": "check deploy",
+            "type": "shell",
+            "command": "python manage.py check --deploy"
+        },
+        {
             "label": "makemigrations account",
             "type": "shell",
             "command": "python manage.py makemigrations account"
