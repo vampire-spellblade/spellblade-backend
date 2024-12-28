@@ -8,7 +8,10 @@ from rest_framework_simplejwt.views import (
     TokenBlacklistView,
 )
 from .views import (
-    SignUpView
+    SignUpView,
+    UpdatePersonalInfoView,
+    UpdateEmailView,
+    UpdatePasswordView,
 )
 
 urlpatterns = [
@@ -17,4 +20,7 @@ urlpatterns = [
     path('login/verify/', TokenVerifyView.as_view(), name='login_verify'),
     path('logout/', TokenBlacklistView.as_view(), name='logout'),
     path('signup/', SignUpView.as_view(), name='signup'),
+    path('update/personal-info/', UpdatePersonalInfoView.as_view(), name='update_personal_info'),
+    path('update/email/', UpdateEmailView.as_view(), name='update_email'),
+    path('update/password/', UpdatePasswordView.as_view(), name='update_password'),
 ]
