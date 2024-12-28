@@ -8,8 +8,10 @@ from .serializers import (
 )
 
 class SignUpView(APIView):
+    '''View for signing up a new user'''
 
     def post(self, request):
+        '''POST requests handling logic'''
         serializer = UserCreationSerializer(data=request.data)
 
         if serializer.is_valid():
