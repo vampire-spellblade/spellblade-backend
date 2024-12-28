@@ -1,13 +1,11 @@
 # pylint: disable=missing-module-docstring
 
 from django.urls import path
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-    TokenVerifyView,
-    TokenBlacklistView,
-)
 from .views import (
+    LoginView,
+    LoginRenewView,
+    LoginVerifyView,
+    LogoutView,
     SignUpView,
     UpdatePersonalInfoView,
     UpdateEmailView,
@@ -15,10 +13,10 @@ from .views import (
 )
 
 urlpatterns = [
-    path('login/', TokenObtainPairView.as_view(), name='login'),
-    path('login/renew/', TokenRefreshView.as_view(), name='login_renew'),
-    path('login/verify/', TokenVerifyView.as_view(), name='login_verify'),
-    path('logout/', TokenBlacklistView.as_view(), name='logout'),
+    path('login/', LoginView.as_view(), name='login'),
+    path('login/renew/', LoginRenewView.as_view(), name='login_renew'),
+    path('login/verify/', LoginVerifyView.as_view(), name='login_verify'),
+    path('logout/', LogoutView.as_view(), name='logout'),
     path('signup/', SignUpView.as_view(), name='signup'),
     path('update/personal-info/', UpdatePersonalInfoView.as_view(), name='update_personal_info'),
     path('update/email/', UpdateEmailView.as_view(), name='update_email'),
