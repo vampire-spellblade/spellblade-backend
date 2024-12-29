@@ -26,7 +26,6 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 INSTALLED_APPS = [
-    'baton',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
