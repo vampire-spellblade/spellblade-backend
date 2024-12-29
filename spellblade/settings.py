@@ -26,12 +26,8 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 INSTALLED_APPS = [
-    'viewflow',
-    'viewflow.workflow',
-    'material',
-    'material.frontend',
-    'material.admin',
-    #'django.contrib.admin',
+    'baton',
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
