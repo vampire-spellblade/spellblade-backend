@@ -26,9 +26,12 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 INSTALLED_APPS = [
-    'jet',
-    'jet.dashboard',
-    'django.contrib.admin',
+    'viewflow',
+    'viewflow.workflow',
+    'material',
+    'material.frontend',
+    'material.admin',
+    #'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',

@@ -1,0 +1,5 @@
+Requirement already satisfied: django-viewflow in ./venv/lib64/python3.13/site-packages (2.2.8)
+Requirement already satisfied: Django>=4.2 in ./venv/lib64/python3.13/site-packages (from django-viewflow) (5.1.4)
+Requirement already satisfied: django-filter>=2.3.0 in ./venv/lib64/python3.13/site-packages (from django-viewflow) (24.3)
+Requirement already satisfied: asgiref<4,>=3.8.1 in ./venv/lib64/python3.13/site-packages (from Django>=4.2->django-viewflow) (3.8.1)
+Requirement already satisfied: sqlparse>=0.3.1 in ./venv/lib64/python3.13/site-packages (from Django>=4.2->django-viewflow) (0.5.3)
