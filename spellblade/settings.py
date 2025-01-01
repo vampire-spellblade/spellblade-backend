@@ -42,6 +42,8 @@ DATABASES = {
     }
 }
 
+AUTH_USER_MODEL = 'spellblade.account.User'
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',

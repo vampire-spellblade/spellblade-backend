@@ -2,21 +2,6 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "run",
-            "type": "shell",
-            "command": "python manage.py runserver"
-        },
-        {
-            "label": "migrate",
-            "type": "shell",
-            "command": "python manage.py migrate"
-        },
-        {
-            "label": "test all",
-            "type": "shell",
-            "command": "python manage.py test"
-        },
-        {
             "label": "collectstatic",
             "type": "shell",
             "command": "python manage.py collectstatic"
@@ -30,26 +15,6 @@
             "label": "check deploy",
             "type": "shell",
             "command": "python manage.py check --deploy"
-        },
-        {
-            "label": "makemigrations account",
-            "type": "shell",
-            "command": "python manage.py makemigrations account"
-        },
-        {
-            "label": "makemigrations core",
-            "type": "shell",
-            "command": "python manage.py makemigrations core"
-        },
-        {
-            "label": "test account",
-            "type": "shell",
-            "command": "python manage.py test account"
-        },
-        {
-            "label": "test core",
-            "type": "shell",
-            "command": "python manage.py test core"
         }
     ]
 }
