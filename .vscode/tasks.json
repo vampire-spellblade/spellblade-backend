@@ -37,9 +37,19 @@
             "command": "python manage.py makemigrations account"
         },
         {
+            "label": "makemigrations core",
+            "type": "shell",
+            "command": "python manage.py makemigrations core"
+        },
+        {
             "label": "test account",
             "type": "shell",
             "command": "python manage.py test account"
+        },
+        {
+            "label": "test core",
+            "type": "shell",
+            "command": "python manage.py test core"
         }
     ]
 }
