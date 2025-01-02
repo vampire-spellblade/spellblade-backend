@@ -6,6 +6,7 @@ SECRET_KEY = 'django-insecure-abzv%!nrm3dzb*v13yx+x3slg3yl1t5fi)3k7o)axhjr01j)9_
 DEBUG = True
 
 ALLOWED_HOSTS = []
+CORS_ALLOWED_ORIGINS = []
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -14,6 +15,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'corsheaders',
+    'core',
 ]
 
 MIDDLEWARE = [
@@ -24,6 +28,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'spellblade.urls'
