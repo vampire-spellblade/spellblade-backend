@@ -1,5 +1,7 @@
+# pylint: disable=missing-module-docstring
 from django.apps import AppConfig
 
-class IdentConfig(AppConfig):
+class IdentConfig(AppConfig): # pylint: disable=missing-class-docstring
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'ident'
+    verbose_name = 'Authentication & Authorization'
