@@ -10,6 +10,31 @@
             "label": "generate requirements",
             "type": "shell",
             "command": "source venv/bin/activate && pip freeze > requirements.txt"
+        },
+        {
+            "label": "run",
+            "type": "shell",
+            "command": "source venv/bin/activate && python manage.py runserver"
+        },
+        {
+            "label": "migrate",
+            "type": "shell",
+            "command": "source venv/bin/activate && python manage.py migrate"
+        },
+        {
+            "label": "make migrations core",
+            "type": "shell",
+            "command": "source venv/bin/activate && python manage.py makemigrations core"
+        },
+        {
+            "label": "test all",
+            "type": "shell",
+            "command": "source venv/bin/activate && python manage.py test"
+        },
+        {
+            "label": "test core",
+            "type": "shell",
+            "command": "source venv/bin/activate && python manage.py test core"
         }
     ]
 }
