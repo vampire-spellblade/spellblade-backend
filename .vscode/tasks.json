@@ -35,6 +35,11 @@
             "label": "test core",
             "type": "shell",
             "command": "source venv/bin/activate && python manage.py test core"
+        },
+        {
+            "label": "create superuser",
+            "type": "shell",
+            "command": "source venv/bin/activate && python manage.py createsuperuser"
         }
     ]
 }
