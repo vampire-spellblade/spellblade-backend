@@ -1,24 +1,3 @@
-SECRET_KEY_FALLBACKS = [
-    SECRET_KEY_FALLBACK.strip()
-        for SECRET_KEY_FALLBACK in env.list('SECRET_KEY_FALLBACKS', default=[])
-]
-
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
-}
-
-SIMPLE_JWT = {
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
-}
-
 SECURE_SSL_REDIRECT = env.bool('SSL_ENABLE', default=True)
 SECURE_PROXY_SSL_HEADER = \
     ('HTTP_X_FORWARDED_PROTO', 'https') if env.bool('SSL_ENABLE', default=True) else None

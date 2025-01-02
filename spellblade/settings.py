@@ -1,5 +1,6 @@
-import environ
+from datetime import timedelta
 from pathlib import Path
+import environ
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -7,8 +8,16 @@ env = environ.Env()
 env.read_env(BASE_DIR / '.env')
 
 SECRET_KEY = env('SECRET_KEY').strip()
+SECRET_KEY_FALLBACKS = list(filter(lambda key: key.strip(), env.list('SECRET_KEY_FALLBACKS', default=[])))
 
-REST_FRAMEWORK = dict()
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+}
 
 if env.bool('PROD', default=True):
     REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = ('rest_framework.renderers.JSONRenderer',)
@@ -26,7 +35,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
+    'ident',
     'core',
 ]
 
@@ -40,6 +52,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
 ]
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+}
 
 ROOT_URLCONF = 'spellblade.urls'
 
