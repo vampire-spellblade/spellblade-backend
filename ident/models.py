@@ -14,7 +14,7 @@ class Group(DjangoGroup): # pylint: disable=missing-class-docstring
 class User(AbstractUser): # pylint: disable=missing-class-docstring
     first_name = None
     last_name = None
-    full_name = models.CharField(_('full name'), blank=True)
+    full_name = models.CharField(_('full name'), max_length=150, blank=True)
     email = models.EmailField(_('email address'), unique=True)
 
     def get_short_name(self):
