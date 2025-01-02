@@ -1,3 +1,4 @@
+# pylint: disable=missing-module-docstring
 from datetime import timedelta
 from pathlib import Path
 import environ
@@ -8,7 +9,8 @@ env = environ.Env()
 env.read_env(BASE_DIR / '.env')
 
 SECRET_KEY = env('SECRET_KEY').strip()
-SECRET_KEY_FALLBACKS = list(filter(lambda key: key.strip(), env.list('SECRET_KEY_FALLBACKS', default=[])))
+SECRET_KEY_FALLBACKS = \
+    list(filter(lambda key: key.strip(), env.list('SECRET_KEY_FALLBACKS', default=[])))
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -25,7 +27,8 @@ else:
     DEBUG = True
 
 ALLOWED_HOSTS = list(filter(lambda host: host.strip(), env.list('ALLOWED_HOSTS', default=[])))
-CORS_ALLOWED_ORIGINS = list(filter(lambda origin: origin.strip(), env.list('CORS_ALLOWED_ORIGINS', default=[])))
+CORS_ALLOWED_ORIGINS = \
+    list(filter(lambda origin: origin.strip(), env.list('CORS_ALLOWED_ORIGINS', default=[])))
 
 INSTALLED_APPS = [
     'django.contrib.admin',
