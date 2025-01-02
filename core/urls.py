@@ -1,5 +1,6 @@
+# pylint: disable=missing-module-docstring
 from django.urls import path
-from .views.index_view import (
+from .views.index import (
     IndexView,
 )
 
