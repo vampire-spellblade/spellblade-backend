@@ -8,7 +8,11 @@ env.read_env(BASE_DIR / '.env')
 
 SECRET_KEY = env('SECRET_KEY').strip()
 
-if env.bool('DEV_MODE', default=False):
+REST_FRAMEWORK = dict()
+
+if env.bool('PROD', default=True):
+    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = ('rest_framework.renderers.JSONRenderer',)
+else:
     DEBUG = True
 
 ALLOWED_HOSTS = list(filter(lambda host: host.strip(), env.list('ALLOWED_HOSTS', default=[])))

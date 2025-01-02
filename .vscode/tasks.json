@@ -40,6 +40,16 @@
             "label": "create superuser",
             "type": "shell",
             "command": "source venv/bin/activate && python manage.py createsuperuser"
+        },
+        {
+            "label": "collect static",
+            "type": "shell",
+            "command": "source venv/bin/activate && python manage.py collectstatic"
+        },
+        {
+            "label": "check deploy",
+            "type": "shell",
+            "command": "source venv/bin/activate && python manage.py check --deploy"
         }
     ]
 }
