@@ -1,12 +1,18 @@
+import environ
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-abzv%!nrm3dzb*v13yx+x3slg3yl1t5fi)3k7o)axhjr01j)9_'
-DEBUG = True
+env = environ.Env()
+env.read_env(BASE_DIR / '.env')
 
-ALLOWED_HOSTS = []
-CORS_ALLOWED_ORIGINS = []
+SECRET_KEY = env('SECRET_KEY').strip()
+
+if env.bool('DEV_MODE', default=False):
+    DEBUG = True
+
+ALLOWED_HOSTS = list(filter(lambda host: host.strip(), env.list('ALLOWED_HOSTS', default=[])))
+CORS_ALLOWED_ORIGINS = list(filter(lambda origin: origin.strip(), env.list('CORS_ALLOWED_ORIGINS', default=[])))
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -53,8 +59,12 @@ WSGI_APPLICATION = 'spellblade.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': env('DB_NAME', default='spellblade').strip(),
+        'USER': env('DB_USER', default='spellblade').strip(),
+        'PASSWORD': env('DB_PASSWORD').strip(),
+        'HOST': env('DB_HOST', default='localhost').strip(),
+        'PORT': env.int('DB_PORT', default=5432),
     }
 }
 
