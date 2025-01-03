@@ -1,4 +1,4 @@
-'''WSGI config for spellblade project.'''
+# pylint: disable=missing-module-docstring
 import os
 from django.core.wsgi import get_wsgi_application
 

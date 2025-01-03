@@ -1,4 +1,4 @@
-'''Spellblade project settings.'''
+# pylint: disable=missing-module-docstring
 from datetime import timedelta
 from pathlib import Path
 import environ
@@ -35,7 +35,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'account',
     'core',

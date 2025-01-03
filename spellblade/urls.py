@@ -1,4 +1,4 @@
-'''URL configuration for spellblade project.'''
+# pylint: disable=missing-module-docstring
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
