@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring
+'''Spellblade project settings.'''
 from datetime import timedelta
 from pathlib import Path
 import environ
@@ -13,12 +13,8 @@ SECRET_KEY_FALLBACKS = \
     list(filter(lambda key: key.strip(), env.list('SECRET_KEY_FALLBACKS', default=[])))
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication'),
+    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticated'),
 }
 
 if env.bool('PROD', default=True):
@@ -91,15 +87,16 @@ DATABASES = {
         'PASSWORD': env('DB_PASSWORD').strip(),
         'HOST': env('DB_HOST', default='localhost').strip(),
         'PORT': env.int('DB_PORT', default=5432),
-    }
+    },
 }
 
 AUTH_USER_MODEL = 'account.User'
 
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+     'OPTIONS': {'min_length': 10}},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 LANGUAGE_CODE = 'en-us'
