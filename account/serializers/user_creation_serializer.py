@@ -1,7 +1,9 @@
 # pylint: disable=missing-module-docstring
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from .models import User
+
+User = get_user_model()
 
 class UserCreationSerializer(serializers.ModelSerializer): # pylint: disable=missing-class-docstring,abstract-method
 

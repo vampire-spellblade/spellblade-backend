@@ -1,6 +1,7 @@
 {
     "version": "2.0.0",
     "tasks": [
+        /* Environment Setup */
         {
             "label": "generate venv",
             "type": "shell",
@@ -11,53 +12,61 @@
             "type": "shell",
             "command": "source venv/bin/activate && pip freeze > requirements.txt"
         },
+
+        /* Development Server */
         {
-            "label": "run",
+            "label": "start server",
             "type": "shell",
             "command": "source venv/bin/activate && python manage.py runserver"
         },
+
+        /* Database */
         {
-            "label": "migrate",
+            "label": "apply migrations",
             "type": "shell",
             "command": "source venv/bin/activate && python manage.py migrate"
         },
         {
-            "label": "make migrations core",
+            "label": "make core app migrations",
             "type": "shell",
             "command": "source venv/bin/activate && python manage.py makemigrations core"
         },
         {
-            "label": "make migrations ident",
+            "label": "make account app migrations",
             "type": "shell",
-            "command": "source venv/bin/activate && python manage.py makemigrations ident"
+            "command": "source venv/bin/activate && python manage.py makemigrations account"
         },
+
+        /* Testing */
         {
-            "label": "test all",
+            "label": "run all tests",
             "type": "shell",
             "command": "source venv/bin/activate && python manage.py test"
         },
         {
-            "label": "test core",
+            "label": "test core app",
             "type": "shell",
             "command": "source venv/bin/activate && python manage.py test core"
         },
         {
-            "label": "test ident",
+            "label": "test account app",
             "type": "shell",
-            "command": "source venv/bin/activate && python manage.py test ident"
+            "command": "source venv/bin/activate && python manage.py test account"
         },
+
+        /* Deployment */
         {
             "label": "create superuser",
             "type": "shell",
             "command": "source venv/bin/activate && python manage.py createsuperuser"
         },
         {
-            "label": "collect static",
+            "label": "collect static files",
             "type": "shell",
             "command": "source venv/bin/activate && python manage.py collectstatic"
         },
         {
-            "label": "check deploy",
+            "label": "run deployment checklist",
             "type": "shell",
             "command": "source venv/bin/activate && python manage.py check --deploy"
         }

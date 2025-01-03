@@ -13,8 +13,8 @@ SECRET_KEY_FALLBACKS = \
     list(filter(lambda key: key.strip(), env.list('SECRET_KEY_FALLBACKS', default=[])))
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication'),
     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticated'),
+    'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication',)
 }
 
 if env.bool('PROD', default=True):
@@ -109,10 +109,10 @@ EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL', default=False)
 EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
 EMAIL_HOST_USER = env('EMAIL_USER').strip()
 EMAIL_HOST_PASSWORD = env('EMAIL_PASS').strip()
-DEFAULT_FROM_EMAIL = f'{EMAIL_HOST_USER}@{EMAIL_HOST}'
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default=f'{EMAIL_HOST_USER}@{EMAIL_HOST}').strip()
 
-SERVER_EMAIL = DEFAULT_FROM_EMAIL
-ADMINS = [
+SERVER_EMAIL = env('SERVER_EMAIL', default=DEFAULT_FROM_EMAIL).strip()
+ADMINS = [ # Will receive an email when 500 Internal Server Error occurs.
     (name.strip(), email.strip())
     for admin in env.list('ADMINS', default=[])
     for name, email in [admin.split(':')]
