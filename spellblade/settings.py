@@ -83,7 +83,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': env('DB_NAME', default='spellblade').strip(),
         'USER': env('DB_USER', default='spellblade').strip(),
-        'PASSWORD': env('DB_PASSWORD').strip(),
+        'PASSWORD': env('DB_PASS').strip(),
         'HOST': env('DB_HOST', default='localhost').strip(),
         'PORT': env.int('DB_PORT', default=5432),
     },
@@ -102,6 +102,21 @@ LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
+
+EMAIL_HOST = env('EMAIL_HOST').strip()
+EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL', default=False)
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+EMAIL_HOST_USER = env('EMAIL_USER').strip()
+EMAIL_HOST_PASSWORD = env('EMAIL_PASS').strip()
+DEFAULT_FROM_EMAIL = f'{EMAIL_HOST_USER}@{EMAIL_HOST}'
+
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+ADMINS = [
+    (name.strip(), email.strip())
+    for admin in env.list('ADMINS', default=[])
+    for name, email in [admin.split(':')]
+]
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'static'
