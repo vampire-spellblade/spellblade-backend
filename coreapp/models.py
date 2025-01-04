@@ -37,9 +37,13 @@ class Task(models.Model):
     description = models.TextField(blank=True)
     due_at = models.DateTimeField(null=True, blank=True)
     recurrence_rate = models.IntegerField(choices=RecurrenceRate.choices, default=RecurrenceRate.NEVER)
+    sub_tasks_complete = models.IntegerField(default=0)
+    sub_tasks_total = models.IntegerField(default=0)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return self.name
 
 # TODO: Implement priority/difficulty system. (Priority: High)
 # TODO: Implement team/guild system. (Priority: Low)
+# TODO: Determine how to allow users to order projects, sections, and tasks in the way they like. (Priority: Medium)

@@ -18,5 +18,5 @@ class SectionAdmin(admin.ModelAdmin):
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
     ordering = ('section__project__user__username', 'section__project__name', 'section__name', 'name',)
-    list_display = ('name', 'section__name', 'section__project__name', 'section__project__user__username', 'due_at', 'recurrence_rate',)
+    list_display = ('name', 'section__name', 'section__project__name', 'section__project__user__username', 'due_at', 'recurrence_rate', 'sub_tasks_complete', 'sub_tasks_total',)
     search_fields = ('section__project__user__username', 'section__project__name', 'section__name', 'name',)
