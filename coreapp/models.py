@@ -1,23 +1,22 @@
-# pylint: disable=missing-module-docstring
 from django.db import models
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+# TODO: Update these models. (Priority: High)
+
 class Project(models.Model):
-    '''Project model for task management.'''
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=30)
-    description = models.TextField()
+    description = models.TextField(blank=True)
 
-    class Meta: # pylint: disable=missing-class-docstring,too-few-public-methods
+    class Meta:
         unique_together = ('user', 'name',)
 
-    def __str__(self): # pylint: disable=invalid-str-returned
+    def __str__(self):
         return self.name
 
 class RecurrenceRate(models.IntegerChoices):
-    '''RecurrenceRate enum to manage task recurrence.'''
     NEVER = -1, 'Never'
     EVERY_DAY = 0, 'Every day'
     EVERY_SUNDAY = 1, 'Every Sunday'
@@ -29,13 +28,11 @@ class RecurrenceRate(models.IntegerChoices):
     EVERY_SATURDAY = 7, 'Every Saturday'
 
 class Task(models.Model):
-    '''Task model for task management.'''
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
-    description = models.TextField()
-    due = models.DateTimeField()
-    recurrence_rate = \
-        models.IntegerField(choices=RecurrenceRate.choices, default=RecurrenceRate.NEVER)
+    description = models.TextField(blank=True)
+    due_at = models.DateTimeField()
+    recurrence_rate = models.IntegerField(choices=RecurrenceRate.choices, default=RecurrenceRate.NEVER)
 
-    def __str__(self): # pylint: disable=invalid-str-returned
+    def __str__(self):
         return self.name

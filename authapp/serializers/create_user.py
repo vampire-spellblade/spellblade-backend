@@ -1,4 +1,3 @@
-# pylint: disable=missing-module-docstring
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
@@ -6,9 +5,8 @@ from rest_framework import serializers
 User = get_user_model()
 
 class UserCreationSerializer(serializers.ModelSerializer):
-    '''Serializer for creating a new user.'''
 
-    class Meta: # pylint: disable=missing-class-docstring,too-few-public-methods
+    class Meta:
         model = User
         fields = ('email', 'username', 'password',)
 

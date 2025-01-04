@@ -1,11 +1,10 @@
-# pylint: disable=missing-module-docstring
 import sys
 from datetime import timedelta
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 import environ
 
-def venv(key) -> str:
+def venv(key):
     '''Fetches an environment variable. On failure, exits with an error message.'''
     try:
         return env(key).strip()
@@ -18,8 +17,7 @@ env = environ.Env()
 environ.Env.read_env(BASE_DIR / '.env')
 
 SECRET_KEY = venv('SECRET_KEY')
-SECRET_KEY_FALLBACKS = \
-    list(filter(lambda key: key.strip(), env.list('SECRET_KEY_FALLBACKS', default=[])))
+SECRET_KEY_FALLBACKS = list(filter(lambda key: key.strip(), env.list('SECRET_KEY_FALLBACKS', default=[])))
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -35,29 +33,33 @@ if env.bool('DEBUG', default=False):
 else:
     REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = ('rest_framework.renderers.JSONRenderer',)
 
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
+    USE_X_FORWARDED_PORT = True
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_HSTS_SECONDS = int(timedelta(days=365).total_seconds())
+
 ALLOWED_HOSTS = list(filter(lambda host: host.strip(), env.list('ALLOWED_HOSTS', default=[])))
-CORS_ALLOWED_ORIGINS = \
-    list(filter(lambda origin: origin.strip(), env.list('CORS_ALLOWED_ORIGINS', default=[])))
+CORS_ALLOWED_ORIGINS = list(filter(lambda origin: origin.strip(), env.list('CORS_ALLOWED_ORIGINS', default=[])))
 
 INSTALLED_APPS = [
-    # django apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # third-party apps
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
-    # project-specific apps
     'authapp',
     'coreapp',
+    # TODO: Implement admin app to replace django admin. (Priority: High)
 ]
 
 MIDDLEWARE = [
-    # django middlewares
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -65,7 +67,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # third-party middlewares
     'corsheaders.middleware.CorsMiddleware',
 ]
 
@@ -92,7 +93,11 @@ TEMPLATES = [{
 
 WSGI_APPLICATION = 'spellblade.wsgi.application'
 
+FILE_UPLOAD_MAX_UPLOAD_SIZE = 1048576
+DATA_UPLOAD_MAX_NUMBER_FILES = 1
+
 DATABASES = {
+    # TODO: Add support for MySQL. (Priority: Low)
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': env('DB_NAME', default='spellblade').strip(),
@@ -139,3 +144,5 @@ MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# TODO: Configure logging. (Priority: High)
