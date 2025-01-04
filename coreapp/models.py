@@ -46,7 +46,9 @@ class Task(models.Model):
 
 class CompletedTask(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True, blank=True)
+    name = models.TextField()
+    project_name = models.CharField(max_length=20)
     completed_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
