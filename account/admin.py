@@ -9,11 +9,15 @@ from django.contrib.auth.admin import (
 )
 from .models import Group
 
+# Group admin
+
 admin.site.unregister(DjangoGroup)
 
 @admin.register(Group)
 class GroupAdmin(BaseGroupAdmin): # pylint: disable=missing-class-docstring
     pass
+
+# User admin
 
 User = get_user_model()
 

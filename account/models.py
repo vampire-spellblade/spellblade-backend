@@ -6,12 +6,14 @@ from django.contrib.auth.models import (
     AbstractUser,
 )
 
-class Group(DjangoGroup): # pylint: disable=missing-class-docstring
+class Group(DjangoGroup):
+    '''Proxy model for DjangoGroup.'''
 
     class Meta: # pylint: disable=missing-class-docstring,too-few-public-methods
         proxy = True
 
-class User(AbstractUser): # pylint: disable=missing-class-docstring
+class User(AbstractUser):
+    '''User model tailored to allow email based authentication and more.'''
     first_name = None
     last_name = None
     full_name = models.CharField(_('full name'), max_length=150, blank=True)

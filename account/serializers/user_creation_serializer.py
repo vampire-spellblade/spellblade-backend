@@ -5,7 +5,8 @@ from rest_framework import serializers
 
 User = get_user_model()
 
-class UserCreationSerializer(serializers.ModelSerializer): # pylint: disable=missing-class-docstring,abstract-method
+class UserCreationSerializer(serializers.ModelSerializer):
+    '''Serializer for creating a new user.'''
 
     class Meta: # pylint: disable=missing-class-docstring,too-few-public-methods
         model = User

@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny
 from ..serializers.user_creation_serializer import UserCreationSerializer
 
 class SignUpView(APIView):
-    '''Registers a new user'''
+    '''Registers a new user.'''
     permission_classes = (AllowAny,)
     serializer_class = UserCreationSerializer
 

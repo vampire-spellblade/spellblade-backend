@@ -1,14 +1,23 @@
 # pylint: disable=missing-module-docstring
+import sys
 from datetime import timedelta
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 import environ
+
+def venv(key) -> str:
+    '''Fetches an environment variable. On failure, exits with an error message.'''
+    try:
+        return env(key).strip()
+    except ImproperlyConfigured:
+        sys.exit(f'\033[91m\033[1mImproperlyConfigured: {key} is required but not set.\033[0m')
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env()
 environ.Env.read_env(BASE_DIR / '.env')
 
-SECRET_KEY = env('SECRET_KEY').strip()
+SECRET_KEY = venv('SECRET_KEY')
 
 SECRET_KEY_FALLBACKS = \
     list(filter(lambda key: key.strip(), env.list('SECRET_KEY_FALLBACKS', default=[])))
@@ -57,7 +66,7 @@ MIDDLEWARE = [
 ]
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -84,7 +93,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': env('DB_NAME', default='spellblade').strip(),
         'USER': env('DB_USER', default='spellblade').strip(),
-        'PASSWORD': env('DB_PASS').strip(),
+        'PASSWORD': venv('DB_PASS'),
         'HOST': env('DB_HOST', default='localhost').strip(),
         'PORT': env.int('DB_PORT', default=5432)
     }
@@ -104,9 +113,9 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-EMAIL_HOST = env('EMAIL_HOST').strip()
-EMAIL_HOST_USER = env('EMAIL_USER').strip()
-EMAIL_HOST_PASSWORD = env('EMAIL_PASS').strip()
+EMAIL_HOST = venv('EMAIL_HOST')
+EMAIL_HOST_USER = venv('EMAIL_USER')
+EMAIL_HOST_PASSWORD = venv('EMAIL_PASS')
 EMAIL_PORT = env.int('EMAIL_PORT', default=587)
 EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL', default=False)
 EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
