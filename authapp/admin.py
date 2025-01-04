@@ -14,15 +14,16 @@ from .models import Group
 admin.site.unregister(DjangoGroup)
 
 @admin.register(Group)
-class GroupAdmin(BaseGroupAdmin): # pylint: disable=missing-class-docstring
-    pass
+class GroupAdmin(BaseGroupAdmin):
+    '''Admin dashboard for Group proxy model.'''
 
 # User admin
 
 User = get_user_model()
 
 @admin.register(User)
-class UserAdmin(BaseUserAdmin): # pylint: disable=missing-class-docstring
+class UserAdmin(BaseUserAdmin):
+    '''Admin dashboard for User model.'''
     list_display = ('username', 'email', 'full_name', 'is_staff',)
     list_filter = ('is_staff', 'is_active', 'groups',)
     search_fields = ('username', 'email', 'full_name',)

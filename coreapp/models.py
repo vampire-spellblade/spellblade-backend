@@ -4,7 +4,8 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-class Project(models.Model): # pylint: disable=missing-class-docstring
+class Project(models.Model):
+    '''Project model for task management.'''
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=30)
     description = models.TextField()
@@ -15,7 +16,8 @@ class Project(models.Model): # pylint: disable=missing-class-docstring
     def __str__(self): # pylint: disable=invalid-str-returned
         return self.name
 
-class RecurrenceRate(models.IntegerChoices): # pylint: disable=missing-class-docstring,too-many-ancestors
+class RecurrenceRate(models.IntegerChoices):
+    '''RecurrenceRate enum to manage task recurrence.'''
     NEVER = -1, 'Never'
     EVERY_DAY = 0, 'Every day'
     EVERY_SUNDAY = 1, 'Every Sunday'
@@ -26,7 +28,8 @@ class RecurrenceRate(models.IntegerChoices): # pylint: disable=missing-class-doc
     EVERY_FRIDAY = 6, 'Every Friday'
     EVERY_SATURDAY = 7, 'Every Saturday'
 
-class Task(models.Model): # pylint: disable=missing-class-docstring
+class Task(models.Model):
+    '''Task model for task management.'''
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     description = models.TextField()

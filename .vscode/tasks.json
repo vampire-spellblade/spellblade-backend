@@ -3,19 +3,19 @@
     "tasks": [
         /* Environment Setup */
         {
-            "label": "generate venv",
+            "label": "create environment",
             "type": "shell",
             "command": "python3 -m venv venv && source venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt"
         },
         {
-            "label": "generate requirements",
+            "label": "export environment",
             "type": "shell",
             "command": "source venv/bin/activate && pip freeze > requirements.txt"
         },
 
         /* Development Server */
         {
-            "label": "start server",
+            "label": "start",
             "type": "shell",
             "command": "source venv/bin/activate && python manage.py runserver"
         },
@@ -27,14 +27,14 @@
             "command": "source venv/bin/activate && python manage.py migrate"
         },
         {
-            "label": "make core app migrations",
+            "label": "generate core app migrations",
             "type": "shell",
-            "command": "source venv/bin/activate && python manage.py makemigrations core"
+            "command": "source venv/bin/activate && python manage.py makemigrations coreapp"
         },
         {
-            "label": "make account app migrations",
+            "label": "generate auth app migrations",
             "type": "shell",
-            "command": "source venv/bin/activate && python manage.py makemigrations account"
+            "command": "source venv/bin/activate && python manage.py makemigrations authapp"
         },
 
         /* Testing */
@@ -46,12 +46,12 @@
         {
             "label": "test core app",
             "type": "shell",
-            "command": "source venv/bin/activate && python manage.py test core"
+            "command": "source venv/bin/activate && python manage.py test coreapp"
         },
         {
-            "label": "test account app",
+            "label": "test auth app",
             "type": "shell",
-            "command": "source venv/bin/activate && python manage.py test account"
+            "command": "source venv/bin/activate && python manage.py test authapp"
         },
 
         /* Deployment */

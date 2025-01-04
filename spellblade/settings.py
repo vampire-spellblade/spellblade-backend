@@ -41,20 +41,24 @@ CORS_ALLOWED_ORIGINS = \
     list(filter(lambda origin: origin.strip(), env.list('CORS_ALLOWED_ORIGINS', default=[])))
 
 INSTALLED_APPS = [
+    # django apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # third-party apps
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
-    'account',
-    'core',
+    # project-specific apps
+    'authapp',
+    'coreapp',
 ]
 
 MIDDLEWARE = [
+    # django middlewares
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -62,6 +66,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # third-party middlewares
     'corsheaders.middleware.CorsMiddleware',
 ]
 
@@ -99,7 +104,7 @@ DATABASES = {
     }
 }
 
-AUTH_USER_MODEL = 'account.User'
+AUTH_USER_MODEL = 'authapp.User'
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
