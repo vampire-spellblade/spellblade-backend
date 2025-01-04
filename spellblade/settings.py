@@ -18,7 +18,6 @@ env = environ.Env()
 environ.Env.read_env(BASE_DIR / '.env')
 
 SECRET_KEY = venv('SECRET_KEY')
-
 SECRET_KEY_FALLBACKS = \
     list(filter(lambda key: key.strip(), env.list('SECRET_KEY_FALLBACKS', default=[])))
 
