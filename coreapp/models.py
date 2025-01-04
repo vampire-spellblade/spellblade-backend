@@ -3,15 +3,19 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-# TODO: Update these models. (Priority: High)
-
 class Project(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=30)
-    description = models.TextField(blank=True)
+    name = models.CharField(max_length=20)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
+    is_user_master = models.BooleanField(default=False) # Each user must have exactly one master project.
 
-    class Meta:
-        unique_together = ('user', 'name',)
+    def __str__(self):
+        return self.name
+
+class Section(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    name = models.TextField()
+    is_project_master = models.BooleanField(default=False) # Each project must have exactly one master section.
 
     def __str__(self):
         return self.name
@@ -28,10 +32,10 @@ class RecurrenceRate(models.IntegerChoices):
     EVERY_SATURDAY = 7, 'Every Saturday'
 
 class Task(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    name = models.CharField(max_length=100)
+    section = models.ForeignKey(Section, on_delete=models.CASCADE)
+    name = models.TextField()
     description = models.TextField(blank=True)
-    due_at = models.DateTimeField()
+    due_at = models.DateTimeField(null=True, blank=True)
     recurrence_rate = models.IntegerField(choices=RecurrenceRate.choices, default=RecurrenceRate.NEVER)
 
     def __str__(self):
