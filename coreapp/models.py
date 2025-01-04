@@ -40,3 +40,6 @@ class Task(models.Model):
 
     def __str__(self):
         return self.name
+
+# TODO: Implement priority/difficulty system. (Priority: High)
+# TODO: Implement team/guild system. (Priority: Low)
