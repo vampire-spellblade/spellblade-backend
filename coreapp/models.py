@@ -44,6 +44,14 @@ class Task(models.Model):
     def __str__(self):
         return self.name
 
+class CompletedTask(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return _(f'You completed a task: {self.task.name}')
+
 # TODO: Implement priority/difficulty system. (Priority: High)
 # TODO: Implement team/guild system. (Priority: Low)
 # TODO: Determine how to allow users to order projects, sections, and tasks in the way they like. (Priority: Medium)
