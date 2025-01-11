@@ -33,8 +33,8 @@ class LoginSerializer(serializers.Serializer):
         refresh = RefreshToken.for_user(self._user)
         access = refresh.access_token
 
-        self.refresh_exp = timezone.datetime.fromtimestamp(refresh['exp'])
-        self.access_exp = timezone.datetime.fromtimestamp(access['exp'])
+        self.refresh_exp = timezone.make_aware(timezone.datetime.fromtimestamp(refresh['exp']))
+        self.access_exp = timezone.make_aware(timezone.datetime.fromtimestamp(access['exp']))
 
         self.refresh = str(refresh)
         self.access = str(access)
@@ -75,7 +75,7 @@ class LoginRenewSerializer(serializers.Serializer):
         if ROTATE_REFRESH_TOKENS:
             self._refresh = RefreshToken.for_user(self._token.user)
 
-            self.refresh_exp = timezone.datetime.fromtimestamp(self._refresh['exp'])
+            self.refresh_exp = timezone.make_aware(timezone.datetime.fromtimestamp(self._refresh['exp']))
             self.refresh = str(self._refresh)
 
             self._token.token = sha1(self.refresh.encode('utf-8')).hexdigest()
@@ -84,7 +84,7 @@ class LoginRenewSerializer(serializers.Serializer):
 
         access = self._refresh.access_token
 
-        self.access_exp = timezone.datetime.fromtimestamp(access['exp'])
+        self.access_exp = timezone.make_aware(timezone.datetime.fromtimestamp(access['exp']))
         self.access = str(access)
 
         return self
