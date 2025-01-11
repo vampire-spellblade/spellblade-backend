@@ -16,7 +16,7 @@ class User(AbstractUser):
         max_length=20,
         unique=True,
         help_text=_(
-            'Your username must be between 1 and 20 characters, and can only contain letters, '
+            'Your username must be at most 20 characters, and can only contain letters, '
             'numbers, hyphens, and periods. It also can\'t start with a number or a special '
             'character, end with a special character, or contain consecutive special characters.'
         ),

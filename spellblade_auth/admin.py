@@ -17,18 +17,17 @@ User = get_user_model()
 class UserAdmin(BaseUserAdmin):
     list_display = ('username', 'email', 'full_name', 'is_staff')
     list_filter = ('is_staff', 'is_active', 'groups')
-    search_fields = ('username', 'full_name', 'email')
+    search_fields = ('username', 'email', 'full_name')
 
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'username', 'usable_password', 'password1', 'password2'),
+            'fields': ('username', 'email', 'full_name', 'usable_password', 'password1', 'password2'),
         }),
     )
 
     fieldsets = (
-        (None, {'fields': ('email', 'username', 'password')}),
-        (_('Personal info'), {'fields': ('full_name',)}),
+        (None, {'fields': ('username', 'email', 'full_name', 'password')}),
         (_('Permissions'), {'fields': (
             'is_active',
             'is_staff',
