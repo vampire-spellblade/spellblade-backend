@@ -53,7 +53,7 @@ class Task(models.Model):
                 check=models.Q(recurrence=RecurringFrequency.NEVER) | models.Q(due_at__isnull=False),
                 name='task_recurrence_requires_due_date',
                 violation_error_message=_('The due date must be set if the task is recurring.'),
-            )
+            ),
         ]
 
     def __str__(self):
