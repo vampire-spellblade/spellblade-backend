@@ -90,11 +90,16 @@ class LoginRenewSerializer(serializers.Serializer):
         return self
 
 class LogoutSerializer(serializers.Serializer):
-    # Remove refresh token from OutstandingToken model.
-    # User is not expected to be logged in at this point.
-    pass
+    token = serializers.CharField(write_only=True)
 
-class LogoutAllSerializer(serializers.Serializer):
-    # Remove all refresh tokens from OutstandingToken model associated with the user.
-    # User is not expected to be logged in at this point.
-    pass
+    def validate(self, attrs):
+        try:
+            self._token = OutstandingToken.objects.get(token=sha1(attrs['token'].encode('utf-8')).hexdigest())
+        except OutstandingToken.DoesNotExist:
+            raise serializers.ValidationError(_('Token is invalid.'))
+
+        return attrs
+
+    def create(self, validated_data):
+        self._token.delete()
+        return self
