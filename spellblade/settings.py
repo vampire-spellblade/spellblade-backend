@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
+    'spellblade_auth',
     'spellblade_core',
 ]
 
@@ -58,7 +59,6 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
     'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
 }
 
 ROOT_URLCONF = 'spellblade.urls'
@@ -93,6 +93,8 @@ DATABASES = {
         'PORT': env.int('DB_PORT', default=5432)
     }
 }
+
+AUTH_USER_MODEL = 'spellblade_auth.User'
 
 AUTH_PASSWORD_VALIDATORS = [
     {

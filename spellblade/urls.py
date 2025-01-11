@@ -6,7 +6,8 @@ from django.conf import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('spellblade_core.urls')),
+    path('auth/', include('spellblade_auth.urls')),
+    path('core/', include('spellblade_core.urls')),
 ]
 
 if settings.DEBUG:
