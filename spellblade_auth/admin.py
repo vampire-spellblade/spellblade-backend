@@ -15,7 +15,7 @@ User = get_user_model()
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ('username', 'email', 'full_name', 'is_staff')
+    list_display = ('username', 'email', 'full_name', 'date_joined', 'last_login', 'is_active', 'is_staff')
     list_filter = ('is_staff', 'is_active', 'groups')
     search_fields = ('username', 'email', 'full_name')
 
