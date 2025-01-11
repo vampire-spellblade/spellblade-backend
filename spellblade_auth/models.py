@@ -35,7 +35,13 @@ class User(AbstractUser):
     def get_short_name(self):
         return self.full_name
 
+    class Meta:
+        db_table = 'auth_user'
+
 class OutstandingToken(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     token = models.CharField(max_length=40)
     expires_at = models.DateTimeField()
+
+    class Meta:
+        db_table = 'auth_outstanding_token'
