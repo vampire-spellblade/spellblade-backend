@@ -1,4 +1,4 @@
-from hashlib import md5
+from hashlib import sha1
 from django.utils import timezone
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import update_last_login
@@ -9,8 +9,8 @@ from rest_framework_simplejwt.exceptions import TokenError
 from spellblade.settings import SIMPLE_JWT
 from .models import OutstandingToken
 
-ROTATE_REFRESH_TOKENS = SIMPLE_JWT['ROTATE_REFRESH_TOKENS'] if 'ROTATE_REFRESH_TOKENS' in SIMPLE_JWT else False
-UPDATE_LAST_LOGIN = SIMPLE_JWT['UPDATE_LAST_LOGIN'] if 'UPDATE_LAST_LOGIN' in SIMPLE_JWT else False
+ROTATE_REFRESH_TOKENS = SIMPLE_JWT.get('ROTATE_REFRESH_TOKENS', False)
+UPDATE_LAST_LOGIN = SIMPLE_JWT.get('UPDATE_LAST_LOGIN', False)
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(write_only=True)
@@ -41,7 +41,7 @@ class LoginSerializer(serializers.Serializer):
 
         OutstandingToken.objects.create(
             user=self._user,
-            token=md5(self.refresh.encode('utf-8')).hexdigest(),
+            token=sha1(self.refresh.encode('utf-8')).hexdigest(),
             expires_at=self.refresh_exp
         )
 
@@ -65,7 +65,7 @@ class LoginRenewSerializer(serializers.Serializer):
             raise serializers.ValidationError(e)
 
         try:
-            self._token = OutstandingToken.objects.get(token=md5(attrs['token'].encode('utf-8')).hexdigest())
+            self._token = OutstandingToken.objects.get(token=sha1(attrs['token'].encode('utf-8')).hexdigest())
         except OutstandingToken.DoesNotExist:
             raise serializers.ValidationError(_('Token is invalid.'))
 
@@ -78,7 +78,7 @@ class LoginRenewSerializer(serializers.Serializer):
             self.refresh_exp = timezone.datetime.fromtimestamp(self._refresh['exp'])
             self.refresh = str(self._refresh)
 
-            self._token.token = md5(self.refresh.encode('utf-8')).hexdigest()
+            self._token.token = sha1(self.refresh.encode('utf-8')).hexdigest()
             self._token.expires_at = self.refresh_exp
             self._token.save()
 

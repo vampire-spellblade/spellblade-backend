@@ -37,5 +37,5 @@ class User(AbstractUser):
 
 class OutstandingToken(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    token = models.CharField(max_length=32)
+    token = models.CharField(max_length=40)
     expires_at = models.DateTimeField()
