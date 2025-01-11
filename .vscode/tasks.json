@@ -27,6 +27,11 @@
             "command": "source venv/bin/activate && python manage.py createsuperuser"
         },
         {
+            "label": "make all migrations",
+            "type": "shell",
+            "command": "source venv/bin/activate && python manage.py makemigrations"
+        },
+        {
             "label": "make core app migrations",
             "type": "shell",
             "command": "source venv/bin/activate && python manage.py makemigrations spellblade_core"
