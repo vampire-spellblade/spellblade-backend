@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import AbstractUser, Group as DjangoGroup
+from .validators import UnicodeUsernameValidator
 
 class Group(DjangoGroup):
 
@@ -8,6 +9,21 @@ class Group(DjangoGroup):
         proxy = True
 
 class User(AbstractUser):
+    username_validator = UnicodeUsernameValidator()
+
+    username = models.CharField(
+        _('username'),
+        max_length=20,
+        unique=True,
+        help_text=_(
+            'Username must be between 1 and 20 characters, and can only contain letters, '
+            'numbers, hyphens, and periods. It can\'t start with a number or a special character, '
+            'end with a special character, or contain consecutive special characters.'
+        ),
+        validators=[username_validator],
+        error_messages={'unique': _('A user with that username already exists.'),},
+    )
+
     first_name = None
     last_name = None
     full_name = models.CharField(_('full name'), max_length=150, blank=True)
