@@ -2,14 +2,74 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "create environment",
+            "label": "setup venv",
             "type": "shell",
-            "command": "python3 -m venv venv && source venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt"
+            "command": "python3 -m venv venv; source venv/bin/activate; pip install --upgrade pip; pip install -r requirements.txt"
         },
         {
-            "label": "export environment",
+            "label": "install requirements",
             "type": "shell",
-            "command": "source venv/bin/activate && pip freeze > requirements.txt"
+            "command": "source venv/bin/activate; pip install --upgrade pip; pip install -r requirements.txt"
+        },
+        {
+            "label": "export requirements",
+            "type": "shell",
+            "command": "source venv/bin/activate; pip freeze > requirements.txt"
+        },
+        {
+            "label": "full migrate",
+            "type": "shell",
+            "command": "source venv/bin/activate; python manage.py makemigrations; python manage.py migrate"
+        },
+        {
+            "label": "migrate",
+            "type": "shell",
+            "command": "source venv/bin/activate; python manage.py migrate"
+        },
+        {
+            "label": "make migrations",
+            "type": "shell",
+            "command": "source venv/bin/activate; python manage.py makemigrations"
+        },
+        {
+            "label": "make migrations core",
+            "type": "shell",
+            "command": "source venv/bin/activate; python manage.py makemigrations spellblade_core"
+        },
+        {
+            "label": "test all",
+            "type": "shell",
+            "command": "source venv/bin/activate; python manage.py test"
+        },
+        {
+            "label": "test core",
+            "type": "shell",
+            "command": "source venv/bin/activate; python manage.py test spellblade_core"
+        },
+        {
+            "label": "start development server",
+            "type": "shell",
+            "command": "source venv/bin/activate; python manage.py runserver"
+        },
+        {
+            "label": "start production server",
+            "type": "shell",
+            "command": "source venv/bin/activate; gunicorn spellblade.wsgi"
+        },
+        {
+            "label": "create superuser",
+            "type": "shell",
+            "command": "source venv/bin/activate; python manage.py createsuperuser"
+        },
+        {
+            "label": "collect static files",
+            "type": "shell",
+            "command": "source venv/bin/activate; python manage.py collectstatic --noinput"
+        },
+        {
+            "label": "check deployment settings",
+            "type": "shell",
+            "command": "source venv/bin/activate; python manage.py check --deploy"
         }
     ]
 }
