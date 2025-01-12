@@ -37,10 +37,7 @@ class TestLogoutView(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(OutstandingToken.objects.filter(user=self.user).count(), 1)
 
-        try:
-            OutstandingToken.objects.get(token=self.token)
-        except OutstandingToken.DoesNotExist:
-            self.assertRaises(OutstandingToken.DoesNotExist)
+        OutstandingToken.objects.get(token=self.token)
 
     def test_logout_failure_token_not_registered(self):
         # Arrange
