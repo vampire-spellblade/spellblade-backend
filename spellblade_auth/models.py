@@ -63,5 +63,9 @@ class OutstandingToken(models.Model):
         verbose_name = _('Outstanding Token')
         verbose_name_plural = _('Outstanding Tokens')
 
+        indexes = [
+            models.Index(fields=['token'])
+        ]
+
     def __str__(self):
         return self.token
