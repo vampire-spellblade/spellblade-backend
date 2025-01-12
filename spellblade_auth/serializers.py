@@ -59,6 +59,7 @@ class LoginRenewSerializer(serializers.Serializer):
     access_exp = serializers.DateTimeField(read_only=True)
 
     def validate(self, attrs):
+        attrs['token'] = attrs['token'].strip()
         try:
             self.token_obj = RefreshToken(attrs['token'])
         except TokenError as e:
@@ -94,7 +95,7 @@ class LogoutSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         try:
-            self.outstanding_token = OutstandingToken.objects.get(token=sha1(attrs['token'].encode('utf-8')).hexdigest())
+            self.outstanding_token = OutstandingToken.objects.get(token=sha1(attrs['token'].strip().encode('utf-8')).hexdigest())
         except OutstandingToken.DoesNotExist:
             raise serializers.ValidationError(_('Token is invalid.'))
 
