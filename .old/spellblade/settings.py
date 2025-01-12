@@ -1,40 +1,12 @@
-'''Django settings for spellblade project.'''
-from datetime import timedelta
-from pathlib import Path
-import environ
-import logging
-from django.utils.translation import gettext_lazy as _
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-env = environ.Env()
-environ.Env.read_env(BASE_DIR / '.env')
-
-logging.basicConfig(
-    filename=env('LOG_FILE', default=BASE_DIR / 'logs/spellblade.log'),
-    level=logging.WARNING,
-    format='[%(asctime)s][%(levelname)s] %(message)s',
-)
-
-logger = logging.getLogger(__name__)
-
-SECRET_KEY = env('SECRET_KEY').strip()
 SECRET_KEY_FALLBACKS = list(filter(lambda key: key.strip(), env.list('SECRET_KEY_FALLBACKS', default=[])))
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
 }
 
-if env.bool('DEBUG', default=False):
-    DEBUG = True
-else:
-    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = ('rest_framework.renderers.JSONRenderer',)
-
+if not env.bool('DEBUG', default=False):
     SECURE_SSL_REDIRECT = True
 
     SECURE_HSTS_PRELOAD = True
@@ -48,67 +20,9 @@ else:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-ALLOWED_HOSTS = list(filter(lambda host: host.strip(), env.list('ALLOWED_HOSTS', default=[])))
-CORS_ALLOWED_ORIGINS = list(filter(lambda origin: origin.strip(), env.list('CORS_ALLOWED_ORIGINS', default=[])))
-
-LANGUAGES = [
-    ('en-us', _('English')),
-    ('en-ca', _('English')),
-    ('fr-ca', _('French')),
-]
-
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'rest_framework',
-    'rest_framework_simplejwt',
-    'corsheaders',
-    'spellblade_auth',
-    'spellblade_core',
-]
-
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
-
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
-    'ROTATE_REFRESH_TOKENS': True,
-    'UPDATE_LAST_LOGIN': True,
-}
-
-ROOT_URLCONF = 'spellblade.urls'
-
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
-
-WSGI_APPLICATION = 'spellblade.wsgi.application'
 
 DATABASES = {
     'default': {
@@ -123,25 +37,9 @@ DATABASES = {
 
 AUTH_USER_MODEL = 'spellblade_auth.User'
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-        'OPTIONS': {
-            'min_length': 10,
-        },
-    },
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
-]
-
 LOCALE_PATHS = [
     BASE_DIR / 'locale',
 ]
-
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
-USE_I18N = True
-USE_TZ = True
 
 EMAIL_HOST = env('EMAIL_HOST').strip()
 EMAIL_HOST_USER = env('EMAIL_USER').strip()
@@ -157,11 +55,3 @@ ADMINS = [
     for admin in env.list('ADMINS', default=[])
     for name, email in [admin.split(':')]
 ]
-
-STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'static'
-
-MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

@@ -1,13 +1,26 @@
 """Django settings for spellblade project."""
+from datetime import timedelta
 from pathlib import Path
+import environ
+import logging
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-$(+t7orinpip_vj6=ebo547xbyfz065ek4dn_8bsclb6!3@1)y'
+env = environ.Env()
+environ.Env.read_env(BASE_DIR / '.env')
 
-DEBUG = True
+logging.basicConfig(
+    filename = BASE_DIR / 'logs/spellblade.log',
+    level = logging.ERROR,
+    format = '[%(asctime)s][%(levelname)s] %(message)s',
+)
 
-ALLOWED_HOSTS = []
+logger = logging.getLogger(__name__)
+
+SECRET_KEY = env('SECRET_KEY').strip()
+DEBUG = env.bool('DEBUG', default=False)
+
+ALLOWED_HOSTS = list(filter(lambda host: host.strip(), env.list('ALLOWED_HOSTS', default=[])))
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -16,6 +29,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -26,6 +42,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'spellblade.urls'
@@ -57,7 +74,7 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 10}},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
@@ -67,5 +84,33 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static'
+
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+    'ROTATE_REFRESH_TOKENS': True,
+    'UPDATE_LAST_LOGIN': True,
+}
+
+LANGUAGES = [
+    ('en-us', 'English (US)'),
+]
+
+CORS_ALLOWED_ORIGINS = list(filter(lambda origin: origin.strip(), env.list('CORS_ALLOWED_ORIGINS', default=[])))
+
+if not DEBUG:
+    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = (
+        'rest_framework.renderers.JSONRenderer',
+    )
