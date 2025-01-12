@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'spellblade_core',
+    'spellblade_auth',
 ]
 
 MIDDLEWARE = [

@@ -7,7 +7,8 @@ from django.conf.urls.i18n import i18n_patterns
 
 urlpatterns = i18n_patterns(
     path('admin/', admin.site.urls),
-    path('', include('spellblade_core.urls')),
+    path('core/', include('spellblade_core.urls')),
+    path('auth/', include('spellblade_auth.urls')),
 
     prefix_default_language=True
 )

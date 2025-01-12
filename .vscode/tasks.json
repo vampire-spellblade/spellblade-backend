@@ -37,6 +37,11 @@
             "command": "source venv/bin/activate; python manage.py makemigrations spellblade_core"
         },
         {
+            "label": "make migrations auth",
+            "type": "shell",
+            "command": "source venv/bin/activate; python manage.py makemigrations spellblade_auth"
+        },
+        {
             "label": "test all",
             "type": "shell",
             "command": "source venv/bin/activate; python manage.py test"
@@ -45,6 +50,11 @@
             "label": "test core",
             "type": "shell",
             "command": "source venv/bin/activate; python manage.py test spellblade_core"
+        },
+        {
+            "label": "test auth",
+            "type": "shell",
+            "command": "source venv/bin/activate; python manage.py test spellblade_auth"
         },
         {
             "label": "start development server",
