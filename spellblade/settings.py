@@ -38,6 +38,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -68,8 +69,12 @@ WSGI_APPLICATION = 'spellblade.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': env('DB_NAME', default='spellblade').strip(),
+        'USER': env('DB_USER', default='spellblade').strip(),
+        'PASSWORD': env('DB_PASS').strip(),
+        'HOST': env('DB_HOST', default='localhost').strip(),
+        'PORT': env.int('DB_PORT', default=5432)
     }
 }
 
@@ -92,9 +97,14 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+SECRET_KEY_FALLBACKS = list(filter(lambda key: key.strip(), env.list('SECRET_KEY_FALLBACKS', default=[])))
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
     ),
 }
 
@@ -105,13 +115,44 @@ SIMPLE_JWT = {
     'UPDATE_LAST_LOGIN': True,
 }
 
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
+
 LANGUAGES = [
     ('en-us', 'English (US)'),
 ]
 
 CORS_ALLOWED_ORIGINS = list(filter(lambda origin: origin.strip(), env.list('CORS_ALLOWED_ORIGINS', default=[])))
 
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL').strip()
+SERVER_EMAIL = env('SERVER_EMAIL').strip()
+ADMINS = [
+    (name.strip(), email.strip())
+    for admin in env.list('ADMINS', default=[])
+    for name, email in [admin.split(':', 1)]
+]
+
+EMAIL_HOST = env('EMAIL_HOST').strip()
+EMAIL_HOST_USER = env('EMAIL_USER').strip()
+EMAIL_HOST_PASSWORD = env('EMAIL_PASS').strip()
+EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL', default=False)
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+
 if not DEBUG:
     REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = (
         'rest_framework.renderers.JSONRenderer',
     )
+
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
+    USE_X_FORWARDED_PORT = True
+
+    SECURE_HSTS_PRELOAD = True
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_SECONDS = 31536000
