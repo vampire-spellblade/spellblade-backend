@@ -9,6 +9,8 @@ class Project(models.Model):
     name = models.CharField(_('name'), max_length=25)
 
     class Meta:
+        verbose_name = _('project')
+        verbose_name_plural = _('projects')
         db_table = 'core_project'
 
         constraints = [
@@ -23,6 +25,8 @@ class Section(models.Model):
     name = models.CharField(_('name'), max_length=25)
 
     class Meta:
+        verbose_name = _('section')
+        verbose_name_plural = _('sections')
         db_table = 'core_section'
 
         constraints = [
@@ -45,6 +49,8 @@ class Task(models.Model):
     recurrence = models.IntegerField(_('recurring frequency'), choices=RecurringFrequency.choices, default=RecurringFrequency.NEVER)
 
     class Meta:
+        verbose_name = _('task')
+        verbose_name_plural = _('tasks')
         db_table = 'core_task'
 
         constraints = [
@@ -52,7 +58,7 @@ class Task(models.Model):
             models.CheckConstraint(
                 check=models.Q(recurrence=RecurringFrequency.NEVER) | models.Q(due_at__isnull=False),
                 name='task_recurrence_requires_due_date',
-                violation_error_message=_('The due date must be set if the task is recurring.'),
+                violation_error_message=_('If the task is recurring, a due date must be set.'),
             ),
         ]
 

@@ -16,7 +16,7 @@ class SectionAdmin(admin.ModelAdmin):
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ('name', 'section', 'project', 'user',)
+    list_display = ('name', 'section', 'project', 'user', 'due_at', 'recurrence',)
     search_fields = ('section__project__user__username', 'section__project__name', 'section__name', 'name',)
 
     def project(self, obj):

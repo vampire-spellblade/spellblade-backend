@@ -2,11 +2,21 @@
 from datetime import timedelta
 from pathlib import Path
 import environ
+import logging
+from django.utils.translation import gettext_lazy as _
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env()
 environ.Env.read_env(BASE_DIR / '.env')
+
+logging.basicConfig(
+    filename=env('LOG_FILE', default=BASE_DIR / 'logs/spellblade.log'),
+    level=logging.WARNING,
+    format='[%(asctime)s][%(levelname)s] %(message)s',
+)
+
+logger = logging.getLogger(__name__)
 
 SECRET_KEY = env('SECRET_KEY').strip()
 SECRET_KEY_FALLBACKS = list(filter(lambda key: key.strip(), env.list('SECRET_KEY_FALLBACKS', default=[])))
@@ -25,10 +35,27 @@ if env.bool('DEBUG', default=False):
 else:
     REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = ('rest_framework.renderers.JSONRenderer',)
 
-    # TODO: Configure SSL and HSTS settings.
+    SECURE_SSL_REDIRECT = True
+
+    SECURE_HSTS_PRELOAD = True
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_SECONDS = 31536000
+
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
+    USE_X_FORWARDED_PORT = True
+
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 ALLOWED_HOSTS = list(filter(lambda host: host.strip(), env.list('ALLOWED_HOSTS', default=[])))
 CORS_ALLOWED_ORIGINS = list(filter(lambda origin: origin.strip(), env.list('CORS_ALLOWED_ORIGINS', default=[])))
+
+LANGUAGES = [
+    ('en-us', _('English')),
+    ('en-ca', _('English')),
+    ('fr-ca', _('French')),
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -47,6 +74,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -82,8 +110,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'spellblade.wsgi.application'
 
-# TODO: Update file upload settings to decrease upload size and number of files.
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -106,6 +132,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
+]
+
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
 ]
 
 LANGUAGE_CODE = 'en-us'
@@ -135,5 +165,3 @@ MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# TODO: Configure logging.
